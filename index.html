@@ -183,42 +183,32 @@ input[type="range"]::-webkit-slider-thumb {
   border-bottom: 1px solid var(--orange); padding-bottom: 3px;
 }
 
-/* ── LAYOUT-1: 1 NFT → cuadrado grande ── */
-.s-row.layout-1 { display: block; }
+/* ── LAYOUT-1: 1 NFT → cuadrado grande centrado ── */
+.s-row.layout-1 { display: flex; justify-content: center; padding: 10px 0; }
 .s-row.layout-1 .s-img {
-  width: 100%;
-  aspect-ratio: 1;
-  border-radius: 4px; overflow: hidden;
+  width: 140px; height: 140px; 
+  border: 3px solid var(--orange); border-radius: 8px; overflow: hidden;
+  box-shadow: 4px 4px 0 var(--ink);
 }
-.s-row.layout-1 .s-img img {
-  width: 100%; height: 100%; object-fit: cover;
-}
+.s-row.layout-1 .s-img img { width: 100%; height: 100%; object-fit: cover; }
 
-/* ── LAYOUT-FEW: 2-3 NFTs → rectángulos horizontales apilados ── */
-.s-row.layout-few { display: flex; flex-direction: column; gap: 4px; }
+/* ── LAYOUT-FEW: 2-3 NFTs → Cuadrados medianos (YA NO SE ESTIRAN) ── */
+.s-row.layout-few { display: flex; justify-content: center; gap: 12px; padding: 10px 0; }
 .s-row.layout-few .s-img {
-  width: 100%;
-  aspect-ratio: 16 / 5;
-  border-radius: 4px; overflow: hidden;
+  width: 90px; height: 90px; 
+  border: 3px solid var(--orange); border-radius: 6px; overflow: hidden;
+  box-shadow: 3px 3px 0 var(--ink);
 }
-.s-row.layout-few .s-img img {
-  width: 100%; height: 100%; object-fit: cover; object-position: center 25%;
-}
-#g-leg25 .s-row.layout-few .s-img img,
-#g-hid225 .s-row.layout-few .s-img img {
-  object-position: center 38%;
-}
+.s-row.layout-few .s-img img { width: 100%; height: 100%; object-fit: cover; }
 
-/* ── LAYOUT-MANY: 4-9 NFTs → grid 3 columnas ── */
+/* ── LAYOUT-MANY: 4-9 NFTs → cuadrícula limpia ── */
 .s-row.layout-many {
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; padding: 5px 0;
 }
 .s-row.layout-many .s-img {
-  aspect-ratio: 1; border-radius: 3px; overflow: hidden;
+  aspect-ratio: 1; border: 2px solid var(--orange); border-radius: 4px; overflow: hidden;
 }
-.s-row.layout-many .s-img img {
-  width: 100%; height: 100%; object-fit: cover;
-}
+.s-row.layout-many .s-img img { width: 100%; height: 100%; object-fit: cover; }
 
 /* ─── FOOTER CARD ─── */
 .s-footer {
@@ -496,20 +486,21 @@ function update() {
 async function captureCard() {
   const el = document.getElementById('capture-area');
 
-  // Capturamos el área tal cual es
   const canvas = await html2canvas(el, {
     useCORS: true,
-    scale: 2,
+    scale: 3, // <--- CAMBIO: Subimos de 2 a 3 para que no se vea borroso
     backgroundColor: '#16161D',
+    logging: false,
+    onclone: (clonedDoc) => {
+      // CAMBIO: Forzamos que los grupos con NFTs se vean brillantes (opacidad 1)
+      const activeGroups = clonedDoc.querySelectorAll('.s-group.active');
+      activeGroups.forEach(g => { g.style.opacity = "1"; });
+    }
   });
 
-  // Calculamos las proporciones para Twitter (1.91:1)
-  // Queremos que el ancho sea 1600. La altura proporcional sería 836.
-  // Pero si tu tarjeta es más alta, necesitamos que el canvas final sea más alto.
-  
   const targetWidth = 1600;
   const scale = targetWidth / canvas.width;
-  const targetHeight = canvas.height * scale; // Altura dinámica según el contenido
+  const targetHeight = canvas.height * scale;
 
   const tw = document.createElement('canvas');
   tw.width = targetWidth;
@@ -517,11 +508,13 @@ async function captureCard() {
   
   const ctx = tw.getContext('2d');
   
-  // Fondo oscuro
+  // CAMBIO: Activamos suavizado de alta calidad para el re-escalado
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
   ctx.fillStyle = '#16161D';
   ctx.fillRect(0, 0, tw.width, tw.height);
 
-  // Dibujamos la captura ajustada al ancho sin cortar nada de abajo
   ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, targetWidth, targetHeight);
 
   return tw;

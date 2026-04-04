@@ -496,47 +496,81 @@ function update() {
 async function captureCard() {
   const el = document.getElementById('capture-area');
 
-  // html2canvas no soporta aspect-ratio ni object-fit:cover.
-  // Solución: antes de capturar, convertimos cada .s-img a dimensiones px reales
-  // leyendo su tamaño actual con getBoundingClientRect(), capturamos, y restauramos.
+  // html2canvas ignora object-fit:cover y object-position en <img>.
+  // Solución definitiva: pre-renderizamos cada imagen NFT en un <canvas> temporal
+  // con el recorte correcto (cover + position), y sustituimos el <img> por ese canvas.
+  // Tras capturar, restauramos todo.
 
-  const snapshots = [];
+  function computeCoverCrop(imgNW, imgNH, boxW, boxH, posX, posY) {
+    // Calcula el recorte src para simular object-fit:cover + object-position
+    const imgRatio = imgNW / imgNH;
+    const boxRatio = boxW  / boxH;
+    let sw, sh, sx, sy;
+    if (imgRatio > boxRatio) {
+      // imagen más ancha: ajustar por altura, recortar ancho
+      sh = imgNH;
+      sw = sh * boxRatio;
+      sy = 0;
+      sx = (imgNW - sw) * posX;
+    } else {
+      // imagen más alta: ajustar por ancho, recortar altura
+      sw = imgNW;
+      sh = sw / boxRatio;
+      sx = 0;
+      sy = (imgNH - sh) * posY;
+    }
+    return { sx, sy, sw, sh };
+  }
+
+  const replacements = [];
 
   el.querySelectorAll('.s-img').forEach(wrap => {
-    const rect = wrap.getBoundingClientRect();
-    const w = Math.round(rect.width);
-    const h = Math.round(rect.height);
     const img = wrap.querySelector('img');
+    if (!img || !img.complete || img.naturalWidth === 0) return;
 
-    // Guardamos estilos originales
-    snapshots.push({
-      wrap,
-      wrapW:   wrap.style.width,
-      wrapH:   wrap.style.height,
-      wrapAR:  wrap.style.aspectRatio,
-      img,
-      imgW:    img ? img.style.width    : '',
-      imgH:    img ? img.style.height   : '',
-      imgOF:   img ? img.style.objectFit: '',
-      imgOP:   img ? img.style.objectPosition : '',
-    });
+    const wRect = wrap.getBoundingClientRect();
+    const boxW  = Math.round(wRect.width);
+    const boxH  = Math.round(wRect.height);
+    if (!boxW || !boxH) return;
 
-    // Fijamos px exactos — el navegador ya calculó el recorte correcto
-    wrap.style.width       = w + 'px';
-    wrap.style.height      = h + 'px';
+    // Leer object-position computado (ej: "50% 38%")
+    const cs    = window.getComputedStyle(img);
+    const parts = cs.objectPosition.split(' ');
+    const posX  = parseFloat(parts[0]) / 100;
+    const posY  = parseFloat(parts[1] || parts[0]) / 100;
+
+    const { sx, sy, sw, sh } = computeCoverCrop(
+      img.naturalWidth, img.naturalHeight, boxW, boxH, posX, posY
+    );
+
+    // Crear canvas con el recorte exacto
+    const cv  = document.createElement('canvas');
+    cv.width  = boxW;
+    cv.height = boxH;
+    cv.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, boxW, boxH);
+
+    // Guardar estado original del wrap
+    const prevWrapW  = wrap.style.width;
+    const prevWrapH  = wrap.style.height;
+    const prevWrapAR = wrap.style.aspectRatio;
+
+    // Fijar tamaño exacto al wrap
+    wrap.style.width       = boxW + 'px';
+    wrap.style.height      = boxH + 'px';
     wrap.style.aspectRatio = 'unset';
 
-    if (img) {
-      img.style.width           = w + 'px';
-      img.style.height          = h + 'px';
-      img.style.objectFit       = 'cover';
-      // Mantenemos el object-position calculado por el navegador
-      const cs = window.getComputedStyle(img);
-      img.style.objectPosition  = cs.objectPosition;
-    }
+    // Aplicar estilos al canvas para que ocupe exactamente el espacio
+    cv.style.width    = boxW + 'px';
+    cv.style.height   = boxH + 'px';
+    cv.style.display  = 'block';
+    cv.style.borderRadius = cs.borderRadius;
+
+    // Sustituir <img> por <canvas>
+    wrap.replaceChild(cv, img);
+
+    replacements.push({ wrap, cv, img, prevWrapW, prevWrapH, prevWrapAR });
   });
 
-  // Esperamos un frame para que el layout se estabilice con los nuevos px
   await new Promise(r => requestAnimationFrame(r));
 
   const canvas = await html2canvas(el, {
@@ -546,17 +580,12 @@ async function captureCard() {
     logging: false,
   });
 
-  // Restauramos todos los estilos originales
-  snapshots.forEach(s => {
-    s.wrap.style.width       = s.wrapW;
-    s.wrap.style.height      = s.wrapH;
-    s.wrap.style.aspectRatio = s.wrapAR;
-    if (s.img) {
-      s.img.style.width           = s.imgW;
-      s.img.style.height          = s.imgH;
-      s.img.style.objectFit       = s.imgOF;
-      s.img.style.objectPosition  = s.imgOP;
-    }
+  // Restaurar todo
+  replacements.forEach(({ wrap, cv, img, prevWrapW, prevWrapH, prevWrapAR }) => {
+    wrap.replaceChild(img, cv);
+    wrap.style.width       = prevWrapW;
+    wrap.style.height      = prevWrapH;
+    wrap.style.aspectRatio = prevWrapAR;
   });
 
   const targetWidth  = 1600;

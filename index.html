@@ -183,33 +183,36 @@ input[type="range"]::-webkit-slider-thumb {
   border-bottom: 1px solid var(--orange); padding-bottom: 3px;
 }
 
-/* Estilo para las imágenes de fondo de los NFTs en la tarjeta */
-.s-img-div {
+/* Estilo base para las imágenes de fondo de los NFTs en la tarjeta */
+.s-img-bg {
   background-size: cover;
-  background-position: center;
+  background-position: center 25%;
   background-repeat: no-repeat;
   width: 100%;
+  height: 100%;
 }
 
 /* ── LAYOUT-1: 1 NFT → cuadrado grande ── */
 .s-row.layout-1 { display: block; }
-.s-row.layout-1 .s-img-div {
+.s-row.layout-1 .s-img {
   width: 100%;
-  aspect-ratio: 1; /* Eliminaremos el aspect-ratio en CSS y lo forzaremos en JS */
+  aspect-ratio: 1;
   border-radius: 4px; overflow: hidden;
 }
+/* Eliminado: .s-row.layout-1 .s-img img { ... } */
 
 /* ── LAYOUT-FEW: 2-3 NFTs → rectángulos horizontales apilados ── */
 .s-row.layout-few { display: flex; flex-direction: column; gap: 4px; }
-.s-row.layout-few .s-img-div {
+.s-row.layout-few .s-img {
   width: 100%;
-  aspect-ratio: 16 / 5; /* Eliminaremos el aspect-ratio en CSS y lo forzaremos en JS */
+  aspect-ratio: 16 / 5;
   border-radius: 4px; overflow: hidden;
 }
+/* Eliminado: .s-row.layout-few .s-img img { ... } */
 
-/* Emulando object-position center 38% para imágenes de fondo específicas */
-#g-leg25 .s-row.layout-few .s-img-div,
-#g-hid225 .s-row.layout-few .s-img-div {
+/* Ajustes específicos de object-position aplicados a background-position */
+#g-leg25 .s-row.layout-few .s-img-bg,
+#g-hid225 .s-row.layout-few .s-img-bg {
   background-position: center 38%;
 }
 
@@ -217,10 +220,10 @@ input[type="range"]::-webkit-slider-thumb {
 .s-row.layout-many {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px;
 }
-.s-row.layout-many .s-img-div {
-  aspect-ratio: 1; /* Eliminaremos el aspect-ratio en CSS y lo forzaremos en JS */
-  border-radius: 3px; overflow: hidden;
+.s-row.layout-many .s-img {
+  aspect-ratio: 1; border-radius: 3px; overflow: hidden;
 }
+/* Eliminado: .s-row.layout-many .s-img img { ... } */
 
 /* ─── FOOTER CARD ─── */
 .s-footer {
@@ -372,7 +375,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 <script>
 const EXT = ".webp";
-const DATA_FLAME = [{id:1,name:"Lurid"},{id:2,name:"Fyre"},{id:3,name:"Knave"},{id:4,name:"Mordex"},{id:5,name:"Lune"},{id:6,name:"Silex"},{id:7,name:"Grit"},{id:8,name:"Night"},{id:9,name:"Threx"},{id:10,name:"Flare"},{id:11,name:"Jasper"},{id:12,name:"Lumen"},{id:13,name:"Dane"},{id:14,name:"Umbral"},{id:15,name:"Quake"},{id:16,name:"Crowen"},{id:17,name:"Cinder"},{id:18,name:"Zeal"},{id:19,name:"Infer"},{id:20,name:"Cinderx"},{id:21,name:"Vant"},{id:22,name:"Warden"},{id:23,name:"Lock"},{id:24,name:"Wraith"},{id:25,name:"Blazion"},{id:26,name:"Tether"},{id:27,name:"Spark"},{id:28,name:"Soot"},{id:29,name:"Shaden"},{id:30,name:"Umbren"},{id:31,name:"Iron"},{id:32,name:"Zane"},{id:33,name:"Vandal"},{id:34,name:"Bladew"},{id:35,name:"Flux"},{id:36,name:"Mourn"},{id:37,name:"Vigor"},{id:38,name:"Rift"},{id:39,name:"Hallow"},{id:40,name:"Lash"},{id:41,name:"Cade"},{id:42,name:"Blazer"},{id:43,name:"Scorn"},{id:44,name:"Locke"},{id:45,name:"Aether"},{id:46,name:"Zenth"},{id:47,name:"Hush"},{id:48,name:"Aira"},{id:49,name:"Ignar"},{id:50,name:"Malice"},{id:51,name:"Gloomy"},{id:52,name:"Aren"},{id:53,name:"Char"},{id:54,name:"Ashryn"},{id:55,name:"Torch"},{id:56,name:"Noxen"},{id:57,name:"Axe"},{id:58,name:"Specter"},{id:59,name:"Scoria"},{id:60,name:"Flint"},{id:61,name:"Nash"},{id:62,name:"Wyvern"},{id:63,name:"Drex"},{id:64,name:"Quill"},{id:65,name:"Zorn"},{id:66,name:"Shiver"},{id:67,name:"Reign"},{id:68,name:"Feral"},{id:69,name:"Bane"},{id:70,name:"Wither"},{id:71,name:"Cairn"},{id:72,name:"Arden"},{id:73,name:"Virex"},{id:74,name:"Blight"},{id:75,name:"Blacken"},{id:76,name:"Ghost"},{id:77,name:"Umber"},{id:78,name:"Dread"},{id:79,name:"Sear"},{id:80,name:"Mace"},{id:81,name:"Ash"},{id:82,name:"Axiom"},{id:83,name:"Vyre"},{id:84,name:"Shardex"},{id:85,name:"Graven"},{id:86,name:"Pyron"},{id:87,name:"Nyx"},{id:88,name:"Karnyx"},{id:89,name:"Zerox"},{id:90,name:"Brim"},{id:91,name:"Emberfall"},{id:92,name:"Brisen"},{id:93,name:"Coalyn"},{id:94,name Dusk:"Dusk"},{id:95,name:"Hexen"},{id:96,name:"Bront"},{id:97,name:"Blighten"},{id:98,name:"Fume"},{id:99,name:"Fang"},{id:100,name:"Zyre"},{id:101,name:"Korr"},{id:102,name:"Irons"},{id:103,name:"Emberix"},{id:104,name:"Fable"},{id:105,name:"Lyre"},{id:106,name:"Jade"},{id:107,name:"Xyren"},{id:108,name:"Drask"},{id:109,name:"Whisper"},{id:110,name:"Grimx"},{id:111,name:"Zarek"},{id:112,name:"Shiv"},{id:113,name:"Spire"},{id:114,name:"Solace"},{id:115,name:"Ravin"},{id:116,name:"Smog"},{id:117,name:"Shade"},{id:118,name:"Ebon"},{id:119,name:"Gloom"},{id:120,name:"Darke"},{id:121,name:"Pyre"},{id:122,name:"Smolder"},{id:123,name:"Cryx"},{id:124,name:"Thane"},{id:125,name:"Knox"},{id:126,name:"Drake"},{id:127,name:"Asha"},{id:128,name:"Black"},{id:129,name:"Drift"},{id:130,name:"Ashen"},{id:131,name:"Zerath"},{id:132,name:"Sever"},{id:133,name:"Shardon"},{id:134,name:"Cralis"},{id:135,name:"Glaive"},{id:136,name:"Hexfall"},{id:137,name:"Smelt"},{id:138,name:"Scald"},{id:139,name:"Ignis"},{id:140,name:"Harden"},{id:141,name:"Fangor"},{id:142,name:"Burner"},{id:143,name:"Nightfall"},{id:144,name:"Wisp"},{id:145,name:"Raven"},{id:146,name:"Vire"},{id:147,name:"Grim"},{id:148,name:"Mist"},{id:149,name:"Ravenx"},{id:150,name:"Voiden"},{id:151,name:"Wrath"},{id:152,name:"Aven"},{id:153,name:"Talon"},{id:154,name:"Nox"},{id:155,name:"Wardenx"},{id:156,name:"Mord"},{id:157,name:"Frosten"},{id:158,name:"Cairon"},{id:159,name:"Styx"},{id:160,name:"Vortex"},{id:161,name:"Kade"},{id:162,name:"Lorien"},{id:163,name:"Crovex"},{id:164,name:"Sinder"},{id:165,name:"Storm"},{id:166,name:"Rune"},{id:167,name:"Nero"},{id:168,name:"Cindral"},{id:169,name:"Raze"},{id:170,name:"Wriven"},{id:171,name:"Zaxon"},{id:172,name:"Trench"},{id:173,name:"Blightor"},{id:174,name:"Steel"},{id:175,name:"Zorix"},{id:176,name:"Wild"},{id:177,name:"Warp"},{id:178,name:"Ironclad"},{id:179,name:"Wrex"},{id:180,name:"Ruin"},{id:181,name:"Ashlock"},{id:182,name:"Ember"},{id:183,name:"Crowx"},{id:184,name:"Yorin"},{id:185,name:"Frost"},{id:186,name:"Brumal"},{id:187,name:"Flaren"},{id:188,name:"Feron"},{id:189,name:"Ziven"},{id:190,name:"Kael"},{id:191,name:"Corven"},{id:192,name:"Umbra"},{id:193,name:"Bolt"},{id:194,name:"Skull"},{id:195,name:"Skorn"},{id:196,name:"Shard"},{id:197,name:"Blaze"},{id:198,name:"Omen"},{id:199,name:"Larken"},{id:200,name:"Coalor"},{id:201,name:"Cask"},{id:202,name:"Emberon"},{id:203,name:"Obscur"},{id:204,name:"Pyrixen"},{id:205,name:"Kragen"},{id:206,name:"Obrex"},{id:207,name:"Vale"},{id:208,name:"Ashfall"},{id:209,name:"Neral"},{id:210,name:"Obsid"},{id:211,name:"Zexel"},{id:212,name:"Thorn"},{id:213,name:"Hex"},{id:214,name:"Vulcan"},{id:215,name:"Onyx"},{id:216,name:"Bryn"},{id:217,name:"Havoc"},{id:218,name:"Snare"},{id:219,name:"Jinx"},{id:220,name:"Hexton"},{id:221,name:"Slate"},{id:222,name:"Pyrel"},{id:223,name:"Virel"},{id:224,name:"Draven"},{id:225,name:"Haze"},{id:226,name:"Vex"},{id:227,name:"Crow"},{id:228,name:"Fext"},{id:229,name:"Noct"},{id:230,name:"Infern"},{id:231,name:"Torin"},{id:232,name:"Shadow"},{id:233,name:"Wolf"},{id:234,name:"Sunder"},{id:235,name:"Keros"},{id:236,name:"Darken"},{id:237,name:"Stryx"},{id:238,name:"Emberly"},{id:239,name:"Void"},{id:240,name:"Torment"},{id:241,name Daxen:"Daxen"},{id:242,name:"Trace"},{id:243,name:"Gale"},{id:244,name:"Hollow"},{id:245,name:"Clast"},{id:246,name:"Pyrix"},{id:247,name:"Coal"},{id:248,name:"Scorch"},{id:249,name Scable:"Sable"},{id:250,name:"Calyx"}];
+const DATA_FLAME = [{id:1,name:"Lurid"},{id:2,name:"Fyre"},{id:3,name:"Knave"},{id:4,name:"Mordex"},{id:5,name:"Lune"},{id:6,name:"Silex"},{id:7,name:"Grit"},{id:8,name:"Night"},{id:9,name:"Threx"},{id:10,name:"Flare"},{id:11,name:"Jasper"},{id:12,name:"Lumen"},{id:13,name:"Dane"},{id:14,name:"Umbral"},{id:15,name:"Quake"},{id:16,name:"Crowen"},{id:17,name:"Cinder"},{id:18,name:"Zeal"},{id:19,name:"Infer"},{id:20,name:"Cinderx"},{id:21,name:"Vant"},{id:22,name:"Warden"},{id:23,name:"Lock"},{id:24,name:"Wraith"},{id:25,name:"Blazion"},{id:26,name:"Tether"},{id:27,name:"Spark"},{id:28,name:"Soot"},{id:29,name:"Shaden"},{id:30,name:"Umbren"},{id:31,name:"Iron"},{id:32,name:"Zane"},{id:33,name:"Vandal"},{id:34,name:"Bladew"},{id:35,name:"Flux"},{id:36,name:"Mourn"},{id:37,name:"Vigor"},{id:38,name:"Rift"},{id:39,name:"Hallow"},{id:40,name:"Lash"},{id:41,name:"Cade"},{id:42,name:"Blazer"},{id:43,name:"Scorn"},{id:44,name:"Locke"},{id:45,name:"Aether"},{id:46,name:"Zenth"},{id:47,name:"Hush"},{id:48,name:"Aira"},{id:49,name:"Ignar"},{id:50,name:"Malice"},{id:51,name:"Gloomy"},{id:52,name:"Aren"},{id:53,name:"Char"},{id:54,name:"Ashryn"},{id:55,name:"Torch"},{id:56,name:"Noxen"},{id:57,name:"Axe"},{id:58,name:"Specter"},{id:59,name:"Scoria"},{id:60,name:"Flint"},{id:61,name:"Nash"},{id:62,name:"Wyvern"},{id:63,name:"Drex"},{id:64,name:"Quill"},{id:65,name:"Zorn"},{id:66,name:"Shiver"},{id:67,name:"Reign"},{id:68,name:"Feral"},{id:69,name:"Bane"},{id:70,name:"Wither"},{id:71,name:"Cairn"},{id:72,name:"Arden"},{id:73,name:"Virex"},{id:74,name:"Blight"},{id:75,name:"Blacken"},{id:76,name:"Ghost"},{id:77,name:"Umber"},{id:78,name:"Dread"},{id:79,name:"Sear"},{id:80,name:"Mace"},{id:81,name:"Ash"},{id:82,name:"Axiom"},{id:83,name:"Vyre"},{id:84,name:"Shardex"},{id:85,name:"Graven"},{id:86,name:"Pyron"},{id:87,name:"Nyx"},{id:88,name:"Karnyx"},{id:89,name:"Zerox"},{id:90,name:"Brim"},{id:91,name:"Emberfall"},{id:92,name:"Brisen"},{id:93,name:"Coalyn"},{id:94,name:"Dusk"},{id:95,name:"Hexen"},{id:96,name:"Bront"},{id:97,name:"Blighten"},{id:98,name:"Fume"},{id:99,name:"Fang"},{id:100,name:"Zyre"},{id:101,name:"Korr"},{id:102,name:"Irons"},{id:103,name:"Emberix"},{id:104,name:"Fable"},{id:105,name:"Lyre"},{id:106,name:"Jade"},{id:107,name:"Xyren"},{id:108,name:"Drask"},{id:109,name:"Whisper"},{id:110,name:"Grimx"},{id:111,name:"Zarek"},{id:112,name:"Shiv"},{id:113,name:"Spire"},{id:114,name:"Solace"},{id:115,name:"Ravin"},{id:116,name:"Smog"},{id:117,name:"Shade"},{id:118,name:"Ebon"},{id:119,name:"Gloom"},{id:120,name:"Darke"},{id:121,name:"Pyre"},{id:122,name:"Smolder"},{id:123,name:"Cryx"},{id:124,name:"Thane"},{id:125,name:"Knox"},{id:126,name:"Drake"},{id:127,name:"Asha"},{id:128,name:"Black"},{id:129,name:"Drift"},{id:130,name:"Ashen"},{id:131,name:"Zerath"},{id:132,name:"Sever"},{id:133,name:"Shardon"},{id:134,name:"Cralis"},{id:135,name:"Glaive"},{id:136,name:"Hexfall"},{id:137,name:"Smelt"},{id:138,name:"Scald"},{id:139,name:"Ignis"},{id:140,name:"Harden"},{id:141,name:"Fangor"},{id:142,name:"Burner"},{id:143,name:"Nightfall"},{id:144,name:"Wisp"},{id:145,name:"Raven"},{id:146,name:"Vire"},{id:147,name:"Grim"},{id:148,name:"Mist"},{id:149,name:"Ravenx"},{id:150,name:"Voiden"},{id:151,name:"Wrath"},{id:152,name:"Aven"},{id:153,name:"Talon"},{id:154,name:"Nox"},{id:155,name:"Wardenx"},{id:156,name:"Mord"},{id:157,name:"Frosten"},{id:158,name:"Cairon"},{id:159,name:"Styx"},{id:160,name cortex:"Vortex"},{id:161,name:"Kade"},{id:162,name:"Lorien"},{id:163,name:"Crovex"},{id:164,name:"Sinder"},{id:165,name:"Storm"},{id:166,name:"Rune"},{id:167,name:"Nero"},{id:168,name:"Cindral"},{id:169,name:"Raze"},{id:170,name:"Wriven"},{id:171,name:"Zaxon"},{id:172,name:"Trench"},{id:173,name:"Blightor"},{id:174,name:"Steel"},{id:175,name:"Zorix"},{id:176,name:"Wild"},{id:177,name:"Warp"},{id:178,name:"Ironclad"},{id:179,name:"Wrex"},{id:180,name:"Ruin"},{id:181,name:"Ashlock"},{id:182,name:"Ember"},{id:183,name:"Crowx"},{id:184,name:"Yorin"},{id:185,name:"Frost"},{id:186,name:"Brumal"},{id:187,name:"Flaren"},{id:188,name:"Feron"},{id:189,name:"Ziven"},{id:190,name:"Kael"},{id:191,name:"Corven"},{id:192,name:"Umbra"},{id:193,name:"Bolt"},{id:194,name:"Skull"},{id:195,name:"Skorn"},{id:196,name:"Shard"},{id:197,name:"Blaze"},{id:198,name:"Omen"},{id:199,name:"Larken"},{id:200,name:"Coalor"},{id:201,name:"Cask"},{id:202,name:"Emberon"},{id:203,name:"Obscur"},{id:204,name:"Pyrixen"},{id:205,name:"Kragen"},{id:206,name:"Obrex"},{id:207,name:"Vale"},{id:208,name:"Ashfall"},{id:209,name:"Neral"},{id:210,name:"Obsid"},{id:211,name:"Zexel"},{id:212,name:"Thorn"},{id:213,name:"Hex"},{id:214,name:"Vulcan"},{id:215,name:"Onyx"},{id:216,name:"Bryn"},{id:217,name:"Havoc"},{id:218,name:"Snare"},{id:219,name:"Jinx"},{id:220,name:"Hexton"},{id:221,name:"Slate"},{id:222,name:"Pyrel"},{id:223,name:"Virel"},{id:224,name:"Draven"},{id:225,name:"Haze"},{id:226,name:"Vex"},{id:227,name:"Crow"},{id:228,name:"Fext"},{id:229,name:"Noct"},{id:230,name:"Infern"},{id:231,name:"Torin"},{id:232,name:"Shadow"},{id:233,name:"Wolf"},{id:234,name:"Sunder"},{id:235,name:"Keros"},{id:236,name:"Darken"},{id:237,name:"Stryx"},{id:238,name:"Emberly"},{id:239,name:"Void"},{id:240,name:"Torment"},{id:241,name:"Daxen"},{id:242,name:"Trace"},{id:243,name:"Gale"},{id:244,name:"Hollow"},{id:245,name:"Clast"},{id:246,name:"Pyrix"},{id:247,name:"Coal"},{id:248,name:"Scorch"},{id:249,name:"Sable"},{id:250,name:"Calyx"}];
 
 let currentTab = 'leg25';
 let myNfts = { leg25: [], hid225: [], flame: [] };
@@ -449,9 +452,10 @@ function renderCardGroup(tab) {
   row.className = `s-row ${cls}`;
 
   nfts.forEach(n => {
-    // Reemplazamos <img> por un <div> con imagen de fondo
+    // r-leg25 r-hid225 r-flame
+    // Usamos div con fondo para solucionar problemas de distorsión con object-fit en html2canvas
     row.innerHTML += `
-      <div class="s-img s-img-div" style="background-image: url(${IMG_PATH[tab](n.id)});">
+      <div class="s-img s-img-bg" style="background-image: url(${IMG_PATH[tab](n.id)});">
       </div>`;
   });
 }
@@ -497,35 +501,36 @@ function update() {
 async function captureCard() {
   const el = document.getElementById('capture-area');
 
-  // Usamos onclone para forzar dimensiones físicas en el clon justo antes de capturar
+  // Usamos onclone para modificar el DOM clonado antes de renderizar
+  // Esto nos permite solucionar problemas de layout de flex/grid y aspect-ratio en html2canvas
   const canvas = await html2canvas(el, {
     useCORS: true,
     scale: 2,
     backgroundColor: '#16161D',
     onclone: (clonedDoc) => {
-      // Obtenemos todos los divs de imagen de NFT en el DOM clonado
-      const clonedSImgs = clonedDoc.querySelectorAll('.s-img-div');
+      // Iteramos sobre todos los elementos de imagen de NFT en el DOM clonado
+      const clonedSImgs = clonedDoc.querySelectorAll('.s-img');
       clonedSImgs.forEach(sImg => {
-        // Obtenemos el ancho actual del elemento
+        // Obtenemos el ancho actual del elemento (ya que está al 100% de su contenedor)
         const width = sImg.offsetWidth;
         let height = 0;
 
-        // Buscamos la fila contenedora para determinar el layout
+        // Calculamos la altura física requerida basándose en la clase de layout
         const parentRow = sImg.closest('.s-row');
         if (parentRow) {
           if (parentRow.classList.contains('layout-few')) {
-            // Layout: rectángulos (16/5). Calculamos altura física.
+            // layout-few: aspect-ratio 16/5
             height = (width / 16) * 5;
           } else if (parentRow.classList.contains('layout-many')) {
-            // Layout: grid de cuadrados (aspect-ratio 1).
+            // layout-many: aspect-ratio 1
             height = width;
           } else if (parentRow.classList.contains('layout-1')) {
-            // Layout: un solo cuadrado grande (aspect-ratio 1).
+            // layout-1: aspect-ratio 1
             height = width;
           }
         }
 
-        // Forzamos la altura física en px
+        // Forzamos el height físico en px
         if (height > 0) {
           sImg.style.height = `${height}px`;
         }
@@ -533,8 +538,9 @@ async function captureCard() {
     }
   });
 
-  // El resto del código de la función `captureCard` permanece igual
   // Calculamos las proporciones para Twitter (1.91:1)
+  // Queremos que el ancho sea 1600. La altura proporcional sería 836.
+  // Pero si tu tarjeta es más alta, necesitamos que el canvas final sea más alto.
   
   const targetWidth = 1600;
   const scale = targetWidth / canvas.width;

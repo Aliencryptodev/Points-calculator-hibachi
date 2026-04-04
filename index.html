@@ -496,24 +496,33 @@ function update() {
 async function captureCard() {
   const el = document.getElementById('capture-area');
 
+  // Capturamos el área tal cual es
   const canvas = await html2canvas(el, {
     useCORS: true,
     scale: 2,
-    backgroundColor: '#1C1C26',
+    backgroundColor: '#16161D',
   });
 
-  // Canvas final 1600×836 (ratio Twitter)
-  const tw  = document.createElement('canvas');
-  tw.width  = 1600;
-  tw.height = 836;
-  const ctx = tw.getContext('2d');
-  ctx.fillStyle = '#1C1C26';
-  ctx.fillRect(0, 0, 1600, 836);
+  // Calculamos las proporciones para Twitter (1.91:1)
+  // Queremos que el ancho sea 1600. La altura proporcional sería 836.
+  // Pero si tu tarjeta es más alta, necesitamos que el canvas final sea más alto.
+  
+  const targetWidth = 1600;
+  const scale = targetWidth / canvas.width;
+  const targetHeight = canvas.height * scale; // Altura dinámica según el contenido
 
-  const scale   = 1600 / canvas.width;
-  const drawH   = canvas.height * scale;
-  const offsetY = Math.max(0, (836 - drawH) / 2);
-  ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, offsetY, 1600, drawH);
+  const tw = document.createElement('canvas');
+  tw.width = targetWidth;
+  tw.height = targetHeight; 
+  
+  const ctx = tw.getContext('2d');
+  
+  // Fondo oscuro
+  ctx.fillStyle = '#16161D';
+  ctx.fillRect(0, 0, tw.width, tw.height);
+
+  // Dibujamos la captura ajustada al ancho sin cortar nada de abajo
+  ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, targetWidth, targetHeight);
 
   return tw;
 }

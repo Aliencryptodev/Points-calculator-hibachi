@@ -89,7 +89,7 @@ input[type="range"]::-webkit-slider-thumb {
   box-shadow: 2px 2px 0 var(--orange); border-radius: 10px;
 }
 .res-item { text-align: center; }
-.res-lbl  { font-size:24px; color: var(--orange); opacity: 0.9; }
+.res-lbl  { font-size: clamp(11px, 1.8vw, 18px); color: var(--orange); opacity: 0.9; }
 .res-val  { font-size: clamp(18px, 3.5vw, 28px); color: var(--white); }
 .res-main { font-size: clamp(28px, 6vw, 54px); color: #fff; text-shadow: 3px 3px 0 var(--ink); }
 
@@ -99,7 +99,7 @@ input[type="range"]::-webkit-slider-thumb {
   flex: 1; min-width: 80px; padding: 7px 6px; cursor: pointer;
   border: 3px solid var(--ink); border-radius: 4px;
   background: var(--paper); color: #fff;
-  font-family: 'Bangers', cursive; font-size:24px;
+  font-family: 'Bangers', cursive; font-size: clamp(12px, 2vw, 15px);
 }
 .tab-btn.active { background: var(--orange); }
 
@@ -166,8 +166,8 @@ input[type="range"]::-webkit-slider-thumb {
   background: var(--paper2); border: 2px solid var(--orange);
   padding: clamp(6px, 1.5vw, 12px); text-align: center; border-radius: 6px;
 }
-.s-stat-item div { font-size:24px; color: var(--orange); }
-.s-stat-item b   { font-size:24px; color: var(--white); }
+.s-stat-item div { font-size: clamp(10px, 1.6vw, 16px); color: var(--orange); }
+.s-stat-item b   { font-size: clamp(12px, 2vw, 20px); color: var(--white); }
 
 /* ─── NFT GRID EN CARD ─── */
 .s-nft-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -246,14 +246,13 @@ input[type="range"]::-webkit-slider-thumb {
 @media (max-width: 620px) {
   .main-grid { grid-template-columns: 1fr; }
   .result-bar { flex-direction: column; gap: 8px; }
-  .s-stats { grid-template-columns: repeat(2, 1fr); }
   .actions { flex-direction: column; align-items: stretch; }
   .btn-act  { text-align: center; }
   body      { padding: 10px; }
+  /* s-stats dentro de capture-area siempre 4 col para que la tarjeta se vea igual */
 }
 @media (max-width: 380px) {
   .s-val-lg, .s-val-xl { font-size: 34px; }
-  .s-stats { grid-template-columns: repeat(2, 1fr); }
 }
 </style>
 </head>
@@ -353,10 +352,13 @@ input[type="range"]::-webkit-slider-thumb {
     </div>
 
     <div class="s-footer">
-    <div>
-    <img src="logotype_mark_white.png" alt="Hibachi" class="s-logo">
-    <div style="color:#fff; font-family:'Bangers',cursive; font-size:30px; letter-spacing:2px; margin-left:52px;">POINTS CALCULATOR</div>
-     </div>
+      <div style="display:flex; flex-direction:column; gap:2px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <img src="logotype_mark_white.png" alt="Hibachi" class="s-logo">
+          <span style="color:#fff; font-family:'Bangers',cursive; font-size:clamp(20px,4vw,38px); letter-spacing:2px; line-height:1;">HIBACHI</span>
+        </div>
+        <div style="color:#fff; font-family:'Bangers',cursive; font-size:clamp(10px,1.8vw,16px); letter-spacing:3px; opacity:0.85; padding-left:4px;">POINTS CALCULATOR</div>
+      </div>
       <div style="text-align:right">
         <div class="s-url">REF CODE</div>
         <div class="s-ref" id="sRef"></div>
@@ -499,78 +501,54 @@ function update() {
 async function captureCard() {
   const el = document.getElementById('capture-area');
 
-  // html2canvas ignora object-fit:cover y object-position en <img>.
-  // Solución definitiva: pre-renderizamos cada imagen NFT en un <canvas> temporal
-  // con el recorte correcto (cover + position), y sustituimos el <img> por ese canvas.
-  // Tras capturar, restauramos todo.
+  // Forzar ancho 800px para que siempre salga horizontal (importante en móvil)
+  const prevMinW = el.style.minWidth;
+  const prevW    = el.style.width;
+  el.style.minWidth = '800px';
+  el.style.width    = '800px';
+  const sStats = el.querySelector('.s-stats');
+  const prevGrid = sStats ? sStats.style.gridTemplateColumns : '';
+  if (sStats) sStats.style.gridTemplateColumns = 'repeat(4, 1fr)';
 
+  // Esperar a que el layout se recalcule con el nuevo ancho
+  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+  // html2canvas ignora object-fit:cover → pre-renderizamos cada NFT en canvas temporal
   function computeCoverCrop(imgNW, imgNH, boxW, boxH, posX, posY) {
-    // Calcula el recorte src para simular object-fit:cover + object-position
     const imgRatio = imgNW / imgNH;
     const boxRatio = boxW  / boxH;
     let sw, sh, sx, sy;
     if (imgRatio > boxRatio) {
-      // imagen más ancha: ajustar por altura, recortar ancho
-      sh = imgNH;
-      sw = sh * boxRatio;
-      sy = 0;
-      sx = (imgNW - sw) * posX;
+      sh = imgNH; sw = sh * boxRatio; sy = 0; sx = (imgNW - sw) * posX;
     } else {
-      // imagen más alta: ajustar por ancho, recortar altura
-      sw = imgNW;
-      sh = sw / boxRatio;
-      sx = 0;
-      sy = (imgNH - sh) * posY;
+      sw = imgNW; sh = sw / boxRatio; sx = 0; sy = (imgNH - sh) * posY;
     }
     return { sx, sy, sw, sh };
   }
 
   const replacements = [];
-
   el.querySelectorAll('.s-img').forEach(wrap => {
     const img = wrap.querySelector('img');
     if (!img || !img.complete || img.naturalWidth === 0) return;
-
     const wRect = wrap.getBoundingClientRect();
     const boxW  = Math.round(wRect.width);
     const boxH  = Math.round(wRect.height);
     if (!boxW || !boxH) return;
-
-    // Leer object-position computado (ej: "50% 38%")
     const cs    = window.getComputedStyle(img);
     const parts = cs.objectPosition.split(' ');
     const posX  = parseFloat(parts[0]) / 100;
     const posY  = parseFloat(parts[1] || parts[0]) / 100;
-
-    const { sx, sy, sw, sh } = computeCoverCrop(
-      img.naturalWidth, img.naturalHeight, boxW, boxH, posX, posY
-    );
-
-    // Crear canvas con el recorte exacto
+    const { sx, sy, sw, sh } = computeCoverCrop(img.naturalWidth, img.naturalHeight, boxW, boxH, posX, posY);
     const cv  = document.createElement('canvas');
-    cv.width  = boxW;
-    cv.height = boxH;
+    cv.width  = boxW; cv.height = boxH;
     cv.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, boxW, boxH);
-
-    // Guardar estado original del wrap
     const prevWrapW  = wrap.style.width;
     const prevWrapH  = wrap.style.height;
     const prevWrapAR = wrap.style.aspectRatio;
-
-    // Fijar tamaño exacto al wrap
-    wrap.style.width       = boxW + 'px';
-    wrap.style.height      = boxH + 'px';
-    wrap.style.aspectRatio = 'unset';
-
-    // Aplicar estilos al canvas para que ocupe exactamente el espacio
-    cv.style.width    = boxW + 'px';
-    cv.style.height   = boxH + 'px';
-    cv.style.display  = 'block';
-    cv.style.borderRadius = cs.borderRadius;
-
-    // Sustituir <img> por <canvas>
+    wrap.style.width = boxW + 'px'; wrap.style.height = boxH + 'px'; wrap.style.aspectRatio = 'unset';
+    cv.style.width = boxW + 'px'; cv.style.height = boxH + 'px';
+    cv.style.display = 'block'; cv.style.borderRadius = cs.borderRadius;
     wrap.replaceChild(cv, img);
-
     replacements.push({ wrap, cv, img, prevWrapW, prevWrapH, prevWrapAR });
   });
 
@@ -586,24 +564,21 @@ async function captureCard() {
   // Restaurar todo
   replacements.forEach(({ wrap, cv, img, prevWrapW, prevWrapH, prevWrapAR }) => {
     wrap.replaceChild(img, cv);
-    wrap.style.width       = prevWrapW;
-    wrap.style.height      = prevWrapH;
-    wrap.style.aspectRatio = prevWrapAR;
+    wrap.style.width = prevWrapW; wrap.style.height = prevWrapH; wrap.style.aspectRatio = prevWrapAR;
   });
+  el.style.minWidth = prevMinW;
+  el.style.width    = prevW;
+  if (sStats) sStats.style.gridTemplateColumns = prevGrid;
 
   const targetWidth  = 1600;
   const scale        = targetWidth / canvas.width;
   const targetHeight = Math.round(canvas.height * scale);
-
   const tw  = document.createElement('canvas');
-  tw.width  = targetWidth;
-  tw.height = targetHeight;
-
+  tw.width  = targetWidth; tw.height = targetHeight;
   const ctx = tw.getContext('2d');
   ctx.fillStyle = '#16161D';
   ctx.fillRect(0, 0, tw.width, tw.height);
   ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, targetWidth, targetHeight);
-
   return tw;
 }
 

@@ -184,13 +184,16 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 /* ── LAYOUT-1: 1 NFT → cuadrado grande ── */
+/* Usamos padding-bottom en lugar de aspect-ratio (html2canvas no soporta aspect-ratio) */
 .s-row.layout-1 { display: block; }
 .s-row.layout-1 .s-img {
   width: 100%;
-  aspect-ratio: 1;
+  position: relative;
+  padding-bottom: 100%; /* 1:1 */
   border-radius: 4px; overflow: hidden;
 }
 .s-row.layout-1 .s-img img {
+  position: absolute; top: 0; left: 0;
   width: 100%; height: 100%; object-fit: cover;
 }
 
@@ -198,10 +201,12 @@ input[type="range"]::-webkit-slider-thumb {
 .s-row.layout-few { display: flex; flex-direction: column; gap: 4px; }
 .s-row.layout-few .s-img {
   width: 100%;
-  aspect-ratio: 16 / 5;
+  position: relative;
+  padding-bottom: 31.25%; /* 16:5 ratio → 5/16*100 = 31.25% */
   border-radius: 4px; overflow: hidden;
 }
 .s-row.layout-few .s-img img {
+  position: absolute; top: 0; left: 0;
   width: 100%; height: 100%; object-fit: cover; object-position: center 25%;
 }
 #g-leg25 .s-row.layout-few .s-img img,
@@ -214,9 +219,12 @@ input[type="range"]::-webkit-slider-thumb {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px;
 }
 .s-row.layout-many .s-img {
-  aspect-ratio: 1; border-radius: 3px; overflow: hidden;
+  position: relative;
+  padding-bottom: 100%; /* 1:1 */
+  border-radius: 3px; overflow: hidden;
 }
 .s-row.layout-many .s-img img {
+  position: absolute; top: 0; left: 0;
   width: 100%; height: 100%; object-fit: cover;
 }
 
@@ -496,30 +504,7 @@ function update() {
 async function captureCard() {
   const el = document.getElementById('capture-area');
 
-  // Forzamos dimensiones y estilos fijos en todas las imágenes del capture-area
-  // para que html2canvas las renderice exactamente igual que en pantalla
-  const imgs = el.querySelectorAll('.s-img');
-  const snapshots = [];
-
-  imgs.forEach(imgWrap => {
-    const computed = window.getComputedStyle(imgWrap);
-    const w = imgWrap.offsetWidth;
-    const h = imgWrap.offsetHeight;
-    snapshots.push({ el: imgWrap, prevW: imgWrap.style.width, prevH: imgWrap.style.height });
-    // Fijamos píxeles exactos para que html2canvas no dependa de aspect-ratio CSS
-    imgWrap.style.width  = w + 'px';
-    imgWrap.style.height = h + 'px';
-    const img = imgWrap.querySelector('img');
-    if (img) {
-      img.style.width  = w + 'px';
-      img.style.height = h + 'px';
-      img.style.objectFit = 'cover';
-    }
-  });
-
-  // Pequeña pausa para que el layout se estabilice
-  await new Promise(r => setTimeout(r, 60));
-
+  // Con padding-bottom trick, html2canvas ya renderiza correctamente sin manipulación extra
   const canvas = await html2canvas(el, {
     useCORS: true,
     scale: 2,
@@ -527,18 +512,6 @@ async function captureCard() {
     logging: false,
     imageTimeout: 15000,
     allowTaint: false,
-  });
-
-  // Restauramos estilos originales
-  snapshots.forEach(({ el: imgWrap, prevW, prevH }) => {
-    imgWrap.style.width  = prevW;
-    imgWrap.style.height = prevH;
-    const img = imgWrap.querySelector('img');
-    if (img) {
-      img.style.width  = '';
-      img.style.height = '';
-      img.style.objectFit = '';
-    }
   });
 
   const targetWidth = 1600;

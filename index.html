@@ -493,31 +493,16 @@ function update() {
   document.getElementById('count').innerText = totalCount;
 }
 
-/* ── EXPORT 1600×836 (ratio Twitter 1.91:1) ── */
 async function captureCard() {
   const el = document.getElementById('capture-area');
 
-  const saved = {
-    width:    el.style.width,
-    minWidth: el.style.minWidth,
-    maxWidth: el.style.maxWidth,
-    padding:  el.style.padding,
-  };
-
-  Object.assign(el.style, {
-    width: '900px', minWidth: '900px', maxWidth: '900px', padding: '32px'
-  });
-
-  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
-
   const canvas = await html2canvas(el, {
-    useCORS: true, scale: 2,
+    useCORS: true,
+    scale: 2,
     backgroundColor: '#1C1C26',
-    width: 900, windowWidth: 1000,
   });
 
-  Object.assign(el.style, saved);
-
+  // Canvas final 1600×836 (ratio Twitter)
   const tw  = document.createElement('canvas');
   tw.width  = 1600;
   tw.height = 836;
@@ -525,7 +510,6 @@ async function captureCard() {
   ctx.fillStyle = '#1C1C26';
   ctx.fillRect(0, 0, 1600, 836);
 
-  // Escala para llenar el ancho, centra verticalmente
   const scale   = 1600 / canvas.width;
   const drawH   = canvas.height * scale;
   const offsetY = Math.max(0, (836 - drawH) / 2);

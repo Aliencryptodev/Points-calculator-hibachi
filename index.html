@@ -4,15 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hibachi — Airdrop Calculator</title>
+<meta http-equiv="Content-Security-Policy" content="frame-ancestors 'none';">
 <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Comic+Neue:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
 :root {
   --orange:  #FB743F;
   --red:     #FE344A;
-  --ink:     #000000;
-  --paper:   #0F0F15;
-  --paper2:  #16161D;
+  --ink:     #0F0F15;
+  --paper:   #16161D;
+  --paper2:  #1C1C26;
   --white:   #FFFFFF;
 }
 
@@ -34,7 +35,7 @@ body {
 header { text-align: center; margin-bottom: 20px; }
 .brand-logo { height: 56px; width: auto; filter: drop-shadow(3px 3px 0 var(--ink)); }
 
-/* ─── GRID PRINCIPAL ─── */
+/* ─── GRID ─── */
 .main-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -42,12 +43,13 @@ header { text-align: center; margin-bottom: 20px; }
   margin-bottom: 16px;
 }
 
+/* ─── PANELES ─── */
 .panel {
   background: var(--paper2);
-  border: 3px solid var(--ink);
+  border: 2px solid var(--orange);
   padding: 16px;
-  box-shadow: 6px 6px 0 var(--ink);
-  border-radius: 4px;
+  box-shadow: 2px 2px 0 var(--orange);
+  border-radius: 10px;
 }
 .panel-full { grid-column: 1 / -1; }
 .panel h2 {
@@ -55,6 +57,7 @@ header { text-align: center; margin-bottom: 20px; }
   margin-bottom: 12px;
   color: var(--orange);
   text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 label { display: block; margin-bottom: 3px; font-size: clamp(13px, 2vw, 17px); color: var(--white); }
@@ -62,7 +65,7 @@ label { display: block; margin-bottom: 3px; font-size: clamp(13px, 2vw, 17px); c
 input[type="number"], input[type="text"] {
   width: 100%; padding: 8px 10px; margin-bottom: 12px;
   border: 3px solid var(--ink); border-radius: 4px;
-  font-family: 'Bangers', cursive; font-size: 18px;
+  font-family: 'Bangers', cursive; font-size: clamp(15px, 2.5vw, 19px);
   background: #000; color: #fff;
 }
 
@@ -74,29 +77,29 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .slider-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
-.slider-val { color: #fff; font-size: 18px; }
+.slider-val { color: #fff; font-size: clamp(15px, 2vw, 20px); }
 
 /* ─── RESULT BAR ─── */
 .result-bar {
   grid-column: 1 / -1;
   background: var(--paper2);
-  border: 3px solid var(--ink);
+  border: 2px solid var(--orange);
   display: flex; justify-content: space-around; align-items: center;
   padding: 14px 16px; gap: 10px; flex-wrap: wrap;
-  box-shadow: 6px 6px 0 var(--ink); border-radius: 4px;
+  box-shadow: 2px 2px 0 var(--orange); border-radius: 10px;
 }
 .res-item { text-align: center; }
-.res-lbl  { font-size: 14px; color: var(--orange); }
-.res-val  { font-size: 24px; color: var(--white); }
+.res-lbl  { font-size: clamp(11px, 1.8vw, 18px); color: var(--orange); opacity: 0.9; }
+.res-val  { font-size: clamp(18px, 3.5vw, 28px); color: var(--white); }
 .res-main { font-size: clamp(28px, 6vw, 54px); color: #fff; text-shadow: 3px 3px 0 var(--ink); }
 
-/* ─── TABS & EDITOR ─── */
+/* ─── TABS ─── */
 .tabs { display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap; }
 .tab-btn {
   flex: 1; min-width: 80px; padding: 7px 6px; cursor: pointer;
   border: 3px solid var(--ink); border-radius: 4px;
   background: var(--paper); color: #fff;
-  font-family: 'Bangers', cursive;
+  font-family: 'Bangers', cursive; font-size: clamp(12px, 2vw, 15px);
 }
 .tab-btn.active { background: var(--orange); }
 
@@ -104,96 +107,171 @@ input[type="range"]::-webkit-slider-thumb {
 .btn-add {
   background: var(--orange); color: var(--white);
   border: 3px solid var(--ink); border-radius: 4px;
-  font-family: 'Bangers', cursive; padding: 0 16px; cursor: pointer;
+  font-family: 'Bangers', cursive; padding: 0 16px;
+  cursor: pointer; font-size: clamp(15px, 2.5vw, 19px); white-space: nowrap;
 }
 
+/* ─── NFT EDITOR GRID ─── */
 .nft-grid-edit {
   margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px;
-  min-height: 90px; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 10px;
+  min-height: 90px; padding: 10px;
+  background: rgba(0,0,0,0.2); border-radius: 10px;
 }
 .nft-card-edit {
-  width: 80px; background: var(--ink); border: 2px solid var(--orange);
-  border-radius: 8px; position: relative; overflow: hidden;
+  width: clamp(64px, 13vw, 84px);
+  background: var(--ink); border: 3px solid var(--orange);
+  border-radius: 10px; position: relative; overflow: hidden;
+  box-shadow: 4px 4px 0 rgba(0,0,0,0.5);
 }
 .nft-card-edit img { width: 100%; display: block; aspect-ratio: 1; object-fit: cover; }
+.nft-id-tag {
+  color: #fff; background: var(--orange);
+  font-size: 10px; text-align: center; padding: 3px 2px;
+}
 .remove-btn {
-  position: absolute; top: 2px; right: 2px; background: var(--red);
-  color: #fff; border: 1px solid #000; border-radius: 50%; width: 18px; height: 18px;
-  cursor: pointer; font-size: 12px; display: flex; align-items: center; justify-content: center;
+  position: absolute; top: 2px; right: 2px;
+  background: var(--red); color: #fff;
+  border: 2px solid var(--ink); border-radius: 50%;
+  width: 19px; height: 19px; cursor: pointer; z-index: 2;
+  font-family: 'Comic Neue', cursive; font-weight: bold; font-size: 11px;
+  display: flex; align-items: center; justify-content: center;
 }
 
-/* ─── AREA DE CAPTURA (LA TARJETA) ─── */
+/* ─── CAPTURE AREA ─── */
+/* Mismo ancho que .wrapper, mismo estilo que .panel */
 #capture-area {
   background: var(--paper2);
-  border: 3px solid var(--ink);
-  box-shadow: 8px 8px 0 var(--ink);
-  border-radius: 4px;
-  padding: 30px;
+  border: 2px solid var(--orange);
+  box-shadow: 2px 2px 0 var(--orange);
+  border-radius: 10px;
+  padding: clamp(16px, 3vw, 32px);
   width: 100%;
-  max-width: 900px;
-  margin: 20px auto;
+  position: relative;
+  overflow: hidden;
 }
 
-.s-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
-.s-val-lg { font-size: clamp(40px, 8vw, 80px); color: var(--white); line-height: 1; }
+/* ─── CARD HEADER ─── */
+.s-header {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 14px; flex-wrap: wrap; gap: 8px;
+}
+.s-val-lg { font-size: clamp(40px, 9vw, 88px); line-height: 0.85; color: var(--white); }
+.s-val-xl { font-size: clamp(40px, 9vw, 88px); line-height: 0.85; color: var(--white); text-align: right; }
 
-.s-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+/* ─── CARD STATS ─── */
+.s-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 14px;
+}
 .s-stat-item {
-  background: var(--paper2); border: 2px solid var(--ink);
-  padding: 10px; text-align: center; border-radius: 4px; box-shadow: 3px 3px 0 var(--ink);
+  background: var(--paper2); border: 2px solid var(--orange);
+  padding: clamp(6px, 1.5vw, 12px); text-align: center; border-radius: 6px;
 }
-.s-stat-item div { font-size: 12px; color: var(--orange); }
-.s-stat-item b { font-size: 18px; color: #fff; }
+.s-stat-item div { font-size: clamp(10px, 1.6vw, 16px); color: var(--orange); }
+.s-stat-item b   { font-size: clamp(12px, 2vw, 20px); color: var(--white); }
 
-/* ─── GRID DE NFTS EN LA TARJETA ─── */
-.s-nft-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-.s-group { border: 2px solid var(--ink); border-radius: 6px; padding: 10px; background: rgba(0,0,0,0.1); opacity: 0.3; }
+/* ─── NFT GRID EN CARD ─── */
+.s-nft-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+
+.s-group {
+  border: 2px solid var(--ink); border-radius: 6px;
+  padding: 6px; background: rgba(0,0,0,0.15); opacity: 0.3;
+}
 .s-group.active { opacity: 1; border-color: var(--orange); }
-.s-group-title { font-size: 20px; color: #fff; text-align: center; border-bottom: 2px solid var(--ink); margin-bottom: 10px; }
-
-.s-row { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; min-height: 50px; }
-.s-img { 
-  width: 70px; height: 70px; border: 3px solid var(--ink); 
-  border-radius: 4px; overflow: hidden; box-shadow: 3px 3px 0 var(--ink); 
+.s-group-title {
+  font-size: clamp(18px, 3vw, 26px); color: #fff;
+  margin-bottom: 5px; text-align: center;
+  border-bottom: 1px solid var(--orange); padding-bottom: 3px;
 }
-.s-img img { width: 100%; height: 100%; object-fit: cover; }
 
-.s-footer { margin-top: 25px; display: flex; justify-content: space-between; align-items: center; border-top: 3px solid var(--ink); padding-top: 15px; }
-.s-logo { height: 45px; }
-.s-ref { font-size: 24px; color: #fff; }
+/* ── LAYOUT-1: 1 NFT → cuadrado grande ── */
+.s-row.layout-1 { display: block; }
+.s-row.layout-1 .s-img {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 4px; overflow: hidden;
+}
+.s-row.layout-1 .s-img img {
+  width: 100%; height: 100%; object-fit: cover;
+}
 
-/* ─── BOTONES ─── */
-.actions { display: flex; gap: 12px; margin-top: 20px; justify-content: center; flex-wrap: wrap; }
+/* ── LAYOUT-FEW: 2-3 NFTs → rectángulos horizontales apilados ── */
+.s-row.layout-few { display: flex; flex-direction: column; gap: 4px; }
+.s-row.layout-few .s-img {
+  width: 100%;
+  aspect-ratio: 16 / 5;
+  border-radius: 4px; overflow: hidden;
+}
+.s-row.layout-few .s-img img {
+  width: 100%; height: 100%; object-fit: cover; object-position: center 25%;
+}
+#g-leg25 .s-row.layout-few .s-img img,
+#g-hid225 .s-row.layout-few .s-img img {
+  object-position: center 38%;
+}
+
+/* ── LAYOUT-MANY: 4-9 NFTs → grid 3 columnas ── */
+.s-row.layout-many {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px;
+}
+.s-row.layout-many .s-img {
+  aspect-ratio: 1; border-radius: 3px; overflow: hidden;
+}
+.s-row.layout-many .s-img img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+
+/* ─── FOOTER CARD ─── */
+.s-footer {
+  margin-top: 14px; display: flex; justify-content: space-between; align-items: center;
+  border-top: 2px solid var(--orange); padding-top: 10px;
+}
+.s-logo { height: clamp(30px, 5vw, 54px); width: auto; filter: drop-shadow(2px 2px 0 var(--ink)); }
+.s-ref { font-size: clamp(16px, 3.5vw, 32px); color: var(--white); }
+.s-url { font-size: clamp(16px, 3.5vw, 32px); color: var(--orange); }
+
+/* ─── BOTONES EXPORT ─── */
+.actions { display: flex; gap: 10px; margin-top: 16px; justify-content: center; flex-wrap: wrap; }
 .btn-act {
-  padding: 12px 24px; font-family: 'Bangers', cursive; font-size: 20px;
-  cursor: pointer; border: 3px solid var(--ink); box-shadow: 4px 4px 0 var(--ink); border-radius: 4px;
+  padding: clamp(9px, 2vw, 13px) clamp(14px, 3vw, 26px);
+  font-family: 'Bangers', cursive; font-size: clamp(15px, 2.5vw, 21px);
+  cursor: pointer; border: 2px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink); transition: 0.1s; border-radius: 6px;
 }
-.btn-act:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
-.btn-blue { background: var(--orange); color: #fff; }
+.btn-act:active { transform: translate(2px,2px); box-shadow: 2px 2px 0 var(--ink); }
+.btn-blue  { background: var(--orange); color: #fff; }
 .btn-green { background: #27ae60; color: #fff; }
-.btn-tw { background: #1DA1F2; color: #fff; }
+.btn-tw    { background: #1DA1F2; color: #fff; }
 
-@media (max-width: 600px) {
+/* ─── RESPONSIVE ─── */
+@media (max-width: 620px) {
   .main-grid { grid-template-columns: 1fr; }
+  .result-bar { flex-direction: column; gap: 8px; }
   .s-stats { grid-template-columns: repeat(2, 1fr); }
-  .s-nft-grid { grid-template-columns: 1fr; }
+  .actions { flex-direction: column; align-items: stretch; }
+  .btn-act  { text-align: center; }
+  body      { padding: 10px; }
+}
+@media (max-width: 380px) {
+  .s-val-lg, .s-val-xl { font-size: 34px; }
+  .s-stats { grid-template-columns: repeat(2, 1fr); }
 }
 </style>
 </head>
 <body>
-
 <div class="wrapper">
-  <header>
+
+<header>
     <img src="logotype_mark_white.png" alt="Hibachi" class="brand-logo">
-    <div style="color:#fff; font-size: 24px; letter-spacing:2px;">POINTS CALCULATOR</div>
-  </header>
+    <div style="color:#fff; font-family:'Bangers',cursive; font-size:clamp(16px,3vw,28px); letter-spacing:2px;">POINTS CALCULATOR</div>
+</header>
 
   <div class="main-grid">
+
     <div class="panel">
       <h2>👤 Ninja Info</h2>
       <label>Your Points</label>
       <input type="number" id="inPoints" value="30000" oninput="update()">
-      <label>Referral Code</label>
+      <label>Refereal code</label>
       <input type="text" id="inRef" placeholder="@YourName" oninput="update()">
     </div>
 
@@ -203,14 +281,22 @@ input[type="range"]::-webkit-slider-thumb {
       <input type="range" id="slFdv" min="50" max="3000" step="50" value="500" oninput="update()">
       <div class="slider-row"><label>Airdrop %</label><span class="slider-val" id="valAir">25%</span></div>
       <input type="range" id="slAir" min="1" max="100" value="25" oninput="update()">
-      <div class="slider-row"><label>Total Points</label><span class="slider-val" id="valSupply">65M</span></div>
+      <div class="slider-row"><label>TOTAL POINTS</label><span class="slider-val" id="valSupply">65M</span></div>
       <input type="range" id="slSupply" min="10" max="500" step="5" value="65" oninput="update()">
     </div>
 
     <div class="result-bar">
       <div class="res-item">
+        <div class="res-lbl">PRICE / POINT</div>
+        <div class="res-val" id="resPpp">$0.0000</div>
+      </div>
+      <div class="res-item">
         <div class="res-lbl">ESTIMATED VALUE</div>
         <div class="res-val res-main" id="resTotal">$0</div>
+      </div>
+      <div class="res-item">
+        <div class="res-lbl">% OF SUPPLY</div>
+        <div class="res-val" id="resPct">0.00%</div>
       </div>
     </div>
 
@@ -218,21 +304,30 @@ input[type="range"]::-webkit-slider-thumb {
       <h2>🥷 My Collectibles (<span id="count">0</span>/9)</h2>
       <div class="tabs">
         <button class="tab-btn active" onclick="setTab('leg25',this)">Legendary 25</button>
-        <button class="tab-btn" onclick="setTab('hid225',this)">Hidden 225</button>
-        <button class="tab-btn" onclick="setTab('flame',this)">Flame Ninjas</button>
+        <button class="tab-btn"        onclick="setTab('hid225',this)">Hidden 225</button>
+        <button class="tab-btn"        onclick="setTab('flame',this)">Flame Ninjas</button>
       </div>
       <div class="search-row">
-        <input type="text" id="nftIn" placeholder="ID or Name..." onkeydown="if(event.key==='Enter') addNFT()">
+        <input type="text" id="nftIn" placeholder="ID or Name…"
+               onkeydown="if(event.key==='Enter') addNFT()" style="margin-bottom:0">
         <button class="btn-add" onclick="addNFT()">ADD</button>
       </div>
       <div id="editGrid" class="nft-grid-edit"></div>
     </div>
+
   </div>
 
+  <!-- SHARE CARD -->
   <div id="capture-area">
     <div class="s-header">
-      <div><div class="res-lbl">TOTAL POINTS</div><div class="s-val-lg" id="sPoints">0</div></div>
-      <div style="text-align:right"><div class="res-lbl">EST. AIRDROP</div><div class="s-val-lg" id="sValue">$0</div></div>
+      <div>
+        <div class="res-lbl">MY TOTAL POINTS</div>
+        <div class="s-val-lg" id="sPoints">0</div>
+      </div>
+      <div style="text-align:right">
+        <div class="res-lbl">EST. AIRDROP</div>
+        <div class="s-val-xl" id="sValue">$0</div>
+      </div>
     </div>
 
     <div class="s-stats">
@@ -243,33 +338,48 @@ input[type="range"]::-webkit-slider-thumb {
     </div>
 
     <div class="s-nft-grid">
-      <div class="s-group" id="g-leg25"><div class="s-group-title">LEGENDARY 25</div><div class="s-row" id="r-leg25"></div></div>
-      <div class="s-group" id="g-hid225"><div class="s-group-title">HIDDEN 225</div><div class="s-row" id="r-hid225"></div></div>
-      <div class="s-group" id="g-flame"><div class="s-group-title">FLAME NINJAS</div><div class="s-row" id="r-flame"></div></div>
+      <div class="s-group" id="g-leg25">
+        <div class="s-group-title">LEGENDARY 25</div>
+        <div class="s-row" id="r-leg25"></div>
+      </div>
+      <div class="s-group" id="g-hid225">
+        <div class="s-group-title">HIDDEN 225</div>
+        <div class="s-row" id="r-hid225"></div>
+      </div>
+      <div class="s-group" id="g-flame">
+        <div class="s-group-title">FLAME NINJAS</div>
+        <div class="s-row" id="r-flame"></div>
+      </div>
     </div>
 
     <div class="s-footer">
       <img src="logotype_mark_white.png" alt="Hibachi" class="s-logo">
-      <div style="text-align:right"><div class="res-lbl" style="color:var(--orange)">REF CODE</div><div class="s-ref" id="sRef">---</div></div>
+      <div style="text-align:right">
+        <div class="s-url">REF CODE</div>
+        <div class="s-ref" id="sRef"></div>
+      </div>
     </div>
   </div>
 
   <div class="actions">
-    <button class="btn-act btn-blue" onclick="downloadCard(this)">⬇ DOWNLOAD IMAGE</button>
-    <button class="btn-act btn-green" onclick="copyCard(this)">📋 COPY CLIPBOARD</button>
-    <button class="btn-act btn-tw" onclick="tweetShare()">𝕏 SHARE ON X</button>
+    <button class="btn-act btn-blue"  onclick="downloadCard(this)">⬇ DOWNLOAD IMAGE</button>
+    <button class="btn-act btn-green" onclick="copyCard(this)">📋 COPY TO CLIPBOARD</button>
+    <button class="btn-act btn-tw"    onclick="tweetShare()">𝕏 SHARE ON X</button>
   </div>
+
 </div>
 
 <script>
 const EXT = ".webp";
+const DATA_FLAME = [{id:1,name:"Lurid"},{id:2,name:"Fyre"},{id:3,name:"Knave"},{id:4,name:"Mordex"},{id:5,name:"Lune"},{id:6,name:"Silex"},{id:7,name:"Grit"},{id:8,name:"Night"},{id:9,name:"Threx"},{id:10,name:"Flare"},{id:11,name:"Jasper"},{id:12,name:"Lumen"},{id:13,name:"Dane"},{id:14,name:"Umbral"},{id:15,name:"Quake"},{id:16,name:"Crowen"},{id:17,name:"Cinder"},{id:18,name:"Zeal"},{id:19,name:"Infer"},{id:20,name:"Cinderx"},{id:21,name:"Vant"},{id:22,name:"Warden"},{id:23,name:"Lock"},{id:24,name:"Wraith"},{id:25,name:"Blazion"},{id:26,name:"Tether"},{id:27,name:"Spark"},{id:28,name:"Soot"},{id:29,name:"Shaden"},{id:30,name:"Umbren"},{id:31,name:"Iron"},{id:32,name:"Zane"},{id:33,name:"Vandal"},{id:34,name:"Bladew"},{id:35,name:"Flux"},{id:36,name:"Mourn"},{id:37,name:"Vigor"},{id:38,name:"Rift"},{id:39,name:"Hallow"},{id:40,name:"Lash"},{id:41,name:"Cade"},{id:42,name:"Blazer"},{id:43,name:"Scorn"},{id:44,name:"Locke"},{id:45,name:"Aether"},{id:46,name:"Zenth"},{id:47,name:"Hush"},{id:48,name:"Aira"},{id:49,name:"Ignar"},{id:50,name:"Malice"},{id:51,name:"Gloomy"},{id:52,name:"Aren"},{id:53,name:"Char"},{id:54,name:"Ashryn"},{id:55,name:"Torch"},{id:56,name:"Noxen"},{id:57,name:"Axe"},{id:58,name:"Specter"},{id:59,name:"Scoria"},{id:60,name:"Flint"},{id:61,name:"Nash"},{id:62,name:"Wyvern"},{id:63,name:"Drex"},{id:64,name:"Quill"},{id:65,name:"Zorn"},{id:66,name:"Shiver"},{id:67,name:"Reign"},{id:68,name:"Feral"},{id:69,name:"Bane"},{id:70,name:"Wither"},{id:71,name:"Cairn"},{id:72,name:"Arden"},{id:73,name:"Virex"},{id:74,name:"Blight"},{id:75,name:"Blacken"},{id:76,name:"Ghost"},{id:77,name:"Umber"},{id:78,name:"Dread"},{id:79,name:"Sear"},{id:80,name:"Mace"},{id:81,name:"Ash"},{id:82,name:"Axiom"},{id:83,name:"Vyre"},{id:84,name:"Shardex"},{id:85,name:"Graven"},{id:86,name:"Pyron"},{id:87,name:"Nyx"},{id:88,name:"Karnyx"},{id:89,name:"Zerox"},{id:90,name:"Brim"},{id:91,name:"Emberfall"},{id:92,name:"Brisen"},{id:93,name:"Coalyn"},{id:94,name:"Dusk"},{id:95,name:"Hexen"},{id:96,name:"Bront"},{id:97,name:"Blighten"},{id:98,name:"Fume"},{id:99,name:"Fang"},{id:100,name:"Zyre"},{id:101,name:"Korr"},{id:102,name:"Irons"},{id:103,name:"Emberix"},{id:104,name:"Fable"},{id:105,name:"Lyre"},{id:106,name:"Jade"},{id:107,name:"Xyren"},{id:108,name:"Drask"},{id:109,name:"Whisper"},{id:110,name:"Grimx"},{id:111,name:"Zarek"},{id:112,name:"Shiv"},{id:113,name:"Spire"},{id:114,name:"Solace"},{id:115,name:"Ravin"},{id:116,name:"Smog"},{id:117,name:"Shade"},{id:118,name:"Ebon"},{id:119,name:"Gloom"},{id:120,name:"Darke"},{id:121,name:"Pyre"},{id:122,name:"Smolder"},{id:123,name:"Cryx"},{id:124,name:"Thane"},{id:125,name:"Knox"},{id:126,name:"Drake"},{id:127,name:"Asha"},{id:128,name:"Black"},{id:129,name:"Drift"},{id:130,name:"Ashen"},{id:131,name:"Zerath"},{id:132,name:"Sever"},{id:133,name:"Shardon"},{id:134,name:"Cralis"},{id:135,name:"Glaive"},{id:136,name:"Hexfall"},{id:137,name:"Smelt"},{id:138,name:"Scald"},{id:139,name:"Ignis"},{id:140,name:"Harden"},{id:141,name:"Fangor"},{id:142,name:"Burner"},{id:143,name:"Nightfall"},{id:144,name:"Wisp"},{id:145,name:"Raven"},{id:146,name:"Vire"},{id:147,name:"Grim"},{id:148,name:"Mist"},{id:149,name:"Ravenx"},{id:150,name:"Voiden"},{id:151,name:"Wrath"},{id:152,name:"Aven"},{id:153,name:"Talon"},{id:154,name:"Nox"},{id:155,name:"Wardenx"},{id:156,name:"Mord"},{id:157,name:"Frosten"},{id:158,name:"Cairon"},{id:159,name:"Styx"},{id:160,name:"Vortex"},{id:161,name:"Kade"},{id:162,name:"Lorien"},{id:163,name:"Crovex"},{id:164,name:"Sinder"},{id:165,name:"Storm"},{id:166,name:"Rune"},{id:167,name:"Nero"},{id:168,name:"Cindral"},{id:169,name:"Raze"},{id:170,name:"Wriven"},{id:171,name:"Zaxon"},{id:172,name:"Trench"},{id:173,name:"Blightor"},{id:174,name:"Steel"},{id:175,name:"Zorix"},{id:176,name:"Wild"},{id:177,name:"Warp"},{id:178,name:"Ironclad"},{id:179,name:"Wrex"},{id:180,name:"Ruin"},{id:181,name:"Ashlock"},{id:182,name:"Ember"},{id:183,name:"Crowx"},{id:184,name:"Yorin"},{id:185,name:"Frost"},{id:186,name:"Brumal"},{id:187,name:"Flaren"},{id:188,name:"Feron"},{id:189,name:"Ziven"},{id:190,name:"Kael"},{id:191,name:"Corven"},{id:192,name:"Umbra"},{id:193,name:"Bolt"},{id:194,name:"Skull"},{id:195,name:"Skorn"},{id:196,name:"Shard"},{id:197,name:"Blaze"},{id:198,name:"Omen"},{id:199,name:"Larken"},{id:200,name:"Coalor"},{id:201,name:"Cask"},{id:202,name:"Emberon"},{id:203,name:"Obscur"},{id:204,name:"Pyrixen"},{id:205,name:"Kragen"},{id:206,name:"Obrex"},{id:207,name:"Vale"},{id:208,name:"Ashfall"},{id:209,name:"Neral"},{id:210,name:"Obsid"},{id:211,name:"Zexel"},{id:212,name:"Thorn"},{id:213,name:"Hex"},{id:214,name:"Vulcan"},{id:215,name:"Onyx"},{id:216,name:"Bryn"},{id:217,name:"Havoc"},{id:218,name:"Snare"},{id:219,name:"Jinx"},{id:220,name:"Hexton"},{id:221,name:"Slate"},{id:222,name:"Pyrel"},{id:223,name:"Virel"},{id:224,name:"Draven"},{id:225,name:"Haze"},{id:226,name:"Vex"},{id:227,name:"Crow"},{id:228,name:"Fext"},{id:229,name:"Noct"},{id:230,name:"Infern"},{id:231,name:"Torin"},{id:232,name:"Shadow"},{id:233,name:"Wolf"},{id:234,name:"Sunder"},{id:235,name:"Keros"},{id:236,name:"Darken"},{id:237,name:"Stryx"},{id:238,name:"Emberly"},{id:239,name:"Void"},{id:240,name:"Torment"},{id:241,name:"Daxen"},{id:242,name:"Trace"},{id:243,name:"Gale"},{id:244,name:"Hollow"},{id:245,name:"Clast"},{id:246,name:"Pyrix"},{id:247,name:"Coal"},{id:248,name:"Scorch"},{id:249,name:"Sable"},{id:250,name:"Calyx"}];
+
 let currentTab = 'leg25';
 let myNfts = { leg25: [], hid225: [], flame: [] };
 
 const IMG_PATH = {
-  leg25: id => `legendary/${id}${EXT}`,
+  leg25:  id => `legendary/${id}${EXT}`,
   hid225: id => `hidden/${id}${EXT}`,
-  flame: id => `flame/${id}${EXT}`
+  flame:  id => `flame/${id}${EXT}`
 };
 
 function setTab(t, btn) {
@@ -281,13 +391,16 @@ function setTab(t, btn) {
 
 function addNFT() {
   const input = document.getElementById('nftIn');
-  const val = input.value.trim().toLowerCase();
-  if (!val || Object.values(myNfts).flat().length >= 9) return;
-  
+  const val   = input.value.trim().toLowerCase();
+  if (!val) return;
+  if (Object.values(myNfts).flat().length >= 9) return;
   let found = null;
-  const max = currentTab === 'leg25' ? 25 : (currentTab === 'hid225' ? 225 : 250);
-  if (!isNaN(val) && +val >= 1 && +val <= max) found = { id: +val, name: '#' + val };
-  
+  if (currentTab === 'flame') {
+    found = DATA_FLAME.find(n => n.id.toString() === val || n.name.toLowerCase() === val);
+  } else {
+    const max = currentTab === 'leg25' ? 25 : 225;
+    if (!isNaN(val) && +val >= 1 && +val <= max) found = { id: +val, name: '#' + val };
+  }
   if (found && !myNfts[currentTab].find(x => x.id === found.id)) {
     myNfts[currentTab].push(found);
     input.value = '';
@@ -304,87 +417,149 @@ function renderEditor() {
   const grid = document.getElementById('editGrid');
   grid.innerHTML = '';
   myNfts[currentTab].forEach(n => {
-    grid.innerHTML += `<div class="nft-card-edit"><button class="remove-btn" onclick="removeNFT('${currentTab}',${n.id})">×</button><img src="${IMG_PATH[currentTab](n.id)}"></div>`;
+    grid.innerHTML += `
+      <div class="nft-card-edit">
+        <button class="remove-btn" onclick="removeNFT('${currentTab}',${n.id})">×</button>
+        <img src="${IMG_PATH[currentTab](n.id)}" onerror="this.style.display='none'">
+        <div class="nft-id-tag">${n.name}</div>
+      </div>`;
   });
 }
 
+/* Smart layout: 1 → cuadrado | 2-3 → rectángulos apilados | 4-9 → grid 3col */
+function renderCardGroup(tab) {
+  const g    = document.getElementById(`g-${tab}`);
+  const row  = document.getElementById(`r-${tab}`);
+  const nfts = myNfts[tab];
+
+  row.innerHTML = '';
+
+  if (nfts.length === 0) {
+    g.classList.remove('active');
+    return;
+  }
+
+  g.classList.add('active');
+
+  let cls = 'layout-many';
+  if (nfts.length === 1)      cls = 'layout-1';
+  else if (nfts.length <= 3)  cls = 'layout-few';
+
+  row.className = `s-row ${cls}`;
+
+  nfts.forEach(n => {
+    row.innerHTML += `
+      <div class="s-img">
+        <img src="${IMG_PATH[tab](n.id)}" onerror="this.parentElement.style.display='none'">
+      </div>`;
+  });
+}
+
+function fmt(n, dec = 0) {
+  return n.toLocaleString('en-US', { minimumFractionDigits: dec, maximumFractionDigits: dec });
+}
+
 function update() {
-  const pts = parseFloat(document.getElementById('inPoints').value) || 0;
-  const fdv = parseFloat(document.getElementById('slFdv').value) * 1e6;
-  const air = parseFloat(document.getElementById('slAir').value) / 100;
+  const pts    = parseFloat(document.getElementById('inPoints').value) || 0;
+  const fdv    = parseFloat(document.getElementById('slFdv').value) * 1e6;
+  const air    = parseFloat(document.getElementById('slAir').value) / 100;
   const supply = parseFloat(document.getElementById('slSupply').value) * 1e6;
-  const ppp = supply > 0 ? (fdv * air) / supply : 0;
-  const total = ppp * pts;
+  const ppp    = supply > 0 ? (fdv * air) / supply : 0;
+  const total  = ppp * pts;
 
-  document.getElementById('valFdv').innerText = '$' + (fdv/1e6) + 'M';
-  document.getElementById('valAir').innerText = (air*100) + '%';
-  document.getElementById('valSupply').innerText = (supply/1e6) + 'M';
-  document.getElementById('resTotal').innerText = '$' + total.toLocaleString('en-US', {maximumFractionDigits:0});
+  document.getElementById('valFdv').innerText    = '$' + fmt(fdv / 1e6) + 'M';
+  document.getElementById('valAir').innerText    = fmt(air * 100) + '%';
+  document.getElementById('valSupply').innerText = fmt(supply / 1e6) + 'M';
 
-  document.getElementById('sPoints').innerText = pts.toLocaleString();
-  document.getElementById('sValue').innerText = '$' + total.toLocaleString('en-US', {maximumFractionDigits:0});
-  document.getElementById('sPpp').innerText = '$' + ppp.toFixed(4);
-  document.getElementById('sFdv').innerText = '$' + (fdv/1e6) + 'M';
-  document.getElementById('sAir').innerText = (air*100) + '%';
-  document.getElementById('sSupply').innerText = (supply/1e6) + 'M';
-  document.getElementById('sRef').innerText = document.getElementById('inRef').value || '---';
+  document.getElementById('resPpp').innerText    = '$' + fmt(ppp, 4);
+  document.getElementById('resTotal').innerText  = '$' + fmt(total);
+  document.getElementById('resPct').innerText    = supply > 0 ? fmt((pts / supply) * 100, 2) + '%' : '0.00%';
+
+  document.getElementById('sPoints').innerText   = fmt(pts);
+  document.getElementById('sValue').innerText    = '$' + fmt(total);
+  document.getElementById('sPpp').innerText      = '$' + fmt(ppp, 4);
+  document.getElementById('sFdv').innerText      = '$' + fmt(fdv / 1e6) + 'M';
+  document.getElementById('sAir').innerText      = fmt(air * 100) + '%';
+  document.getElementById('sSupply').innerText   = fmt(supply / 1e6) + 'M';
+  document.getElementById('sRef').innerText      = document.getElementById('inRef').value;
 
   renderEditor();
+
   let totalCount = 0;
   ['leg25','hid225','flame'].forEach(tab => {
     totalCount += myNfts[tab].length;
-    const row = document.getElementById(`r-${tab}`);
-    const group = document.getElementById(`g-${tab}`);
-    row.innerHTML = '';
-    if (myNfts[tab].length > 0) {
-      group.classList.add('active');
-      myNfts[tab].forEach(n => {
-        row.innerHTML += `<div class="s-img"><img src="${IMG_PATH[tab](n.id)}"></div>`;
-      });
-    } else { group.classList.remove('active'); }
+    renderCardGroup(tab);
   });
   document.getElementById('count').innerText = totalCount;
 }
 
 async function captureCard() {
   const el = document.getElementById('capture-area');
+
+  // Capturamos el área tal cual es
   const canvas = await html2canvas(el, {
-    useCORS: true, scale: 3, backgroundColor: '#0F0F15',
-    onclone: (clonedDoc) => {
-      clonedDoc.querySelectorAll('.s-group.active').forEach(g => g.style.opacity = "1");
-    }
+    useCORS: true,
+    scale: 2,
+    backgroundColor: '#16161D',
   });
-  return canvas;
+
+  // Calculamos las proporciones para Twitter (1.91:1)
+  // Queremos que el ancho sea 1600. La altura proporcional sería 836.
+  // Pero si tu tarjeta es más alta, necesitamos que el canvas final sea más alto.
+  
+  const targetWidth = 1600;
+  const scale = targetWidth / canvas.width;
+  const targetHeight = canvas.height * scale; // Altura dinámica según el contenido
+
+  const tw = document.createElement('canvas');
+  tw.width = targetWidth;
+  tw.height = targetHeight; 
+  
+  const ctx = tw.getContext('2d');
+  
+  // Fondo oscuro
+  ctx.fillStyle = '#16161D';
+  ctx.fillRect(0, 0, tw.width, tw.height);
+
+  // Dibujamos la captura ajustada al ancho sin cortar nada de abajo
+  ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, targetWidth, targetHeight);
+
+  return tw;
 }
 
 async function downloadCard(btn) {
-  const old = btn.innerText; btn.innerText = 'WAIT...';
+  const old = btn.innerText; btn.innerText = '⏳ WAIT…';
   try {
-    const cvs = await captureCard();
+    const tw   = await captureCard();
     const link = document.createElement('a');
     link.download = 'hibachi-airdrop.png';
-    link.href = cvs.toDataURL('image/png', 1.0);
+    link.href     = tw.toDataURL('image/png');
     link.click();
     btn.innerText = '✅ DONE!';
-  } catch(e) { btn.innerText = '❌ ERROR'; }
-  setTimeout(() => btn.innerText = old, 2000);
+  } catch(e) { console.error(e); btn.innerText = '❌ ERROR'; }
+  setTimeout(() => btn.innerText = old, 2500);
 }
 
 async function copyCard(btn) {
-  const old = btn.innerText; btn.innerText = 'COPYING...';
+  const old = btn.innerText; btn.innerText = '⏳ COPYING…';
   try {
-    const cvs = await captureCard();
-    cvs.toBlob(async b => {
-      await navigator.clipboard.write([new ClipboardItem({'image/png': b})]);
-      btn.innerText = '✅ COPIED!';
-    });
-  } catch(e) { btn.innerText = '❌ ERROR'; }
-  setTimeout(() => btn.innerText = old, 2000);
+    const tw = await captureCard();
+    tw.toBlob(async blob => {
+      try {
+        await navigator.clipboard.write([new ClipboardItem({'image/png': blob})]);
+        btn.innerText = '✅ COPIED!';
+      } catch { btn.innerText = '❌ FAILED'; }
+    }, 'image/png');
+  } catch(e) { console.error(e); btn.innerText = '❌ FAILED'; }
+  setTimeout(() => btn.innerText = old, 2500);
 }
 
 function tweetShare() {
   const val = document.getElementById('sValue').innerText;
-  window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(`My estimated $HIBACHI airdrop is ${val} 🔥\n\n@hibachi_xyz #HibachiAirdrop`)}`, '_blank');
+  window.open(
+    `https://twitter.com/intent/tweet?text=${encodeURIComponent(`My estimated $HIBACHI airdrop is ${val} 🔥\n\n@hibachi_xyz #HibachiAirdrop`)}`,
+    '_blank'
+  );
 }
 
 update();

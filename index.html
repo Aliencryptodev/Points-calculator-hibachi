@@ -183,48 +183,41 @@ input[type="range"]::-webkit-slider-thumb {
   border-bottom: 1px solid var(--orange); padding-bottom: 3px;
 }
 
-/* ── LAYOUTS: alturas asignadas por JS para que html2canvas las respete ── */
-
-/* LAYOUT-1: 1 NFT */
+/* ── LAYOUT-1: 1 NFT → cuadrado grande ── */
 .s-row.layout-1 { display: block; }
 .s-row.layout-1 .s-img {
   width: 100%;
+  aspect-ratio: 1;
   border-radius: 4px; overflow: hidden;
-  /* height se asigna por JS */
 }
 .s-row.layout-1 .s-img img {
-  width: 100%; height: 100%; display: block; object-fit: cover;
-  flex-shrink: 0;
+  width: 100%; height: 100%; object-fit: cover;
 }
 
-/* LAYOUT-FEW: 2-3 NFTs apilados */
+/* ── LAYOUT-FEW: 2-3 NFTs → rectángulos horizontales apilados ── */
 .s-row.layout-few { display: flex; flex-direction: column; gap: 4px; }
 .s-row.layout-few .s-img {
   width: 100%;
+  aspect-ratio: 16 / 5;
   border-radius: 4px; overflow: hidden;
-  flex-shrink: 0;
-  /* height se asigna por JS */
 }
 .s-row.layout-few .s-img img {
-  width: 100%; height: 100%; display: block;
-  object-fit: cover; object-position: center 25%;
-  flex-shrink: 0;
+  width: 100%; height: 100%; object-fit: cover; object-position: center 25%;
 }
 #g-leg25 .s-row.layout-few .s-img img,
 #g-hid225 .s-row.layout-few .s-img img {
   object-position: center 38%;
 }
 
-/* LAYOUT-MANY: 4-9 NFTs grid 3 col */
+/* ── LAYOUT-MANY: 4-9 NFTs → grid 3 columnas ── */
 .s-row.layout-many {
   display: grid; grid-template-columns: repeat(3, 1fr); gap: 3px;
 }
 .s-row.layout-many .s-img {
-  border-radius: 3px; overflow: hidden;
-  /* height se asigna por JS */
+  aspect-ratio: 1; border-radius: 3px; overflow: hidden;
 }
 .s-row.layout-many .s-img img {
-  width: 100%; height: 100%; display: block; object-fit: cover;
+  width: 100%; height: 100%; object-fit: cover;
 }
 
 /* ─── FOOTER CARD ─── */
@@ -433,8 +426,7 @@ function renderEditor() {
   });
 }
 
-/* Smart layout: 1 → cuadrado | 2-3 → rectángulos apilados | 4-9 → grid 3col
-   Las alturas se asignan en px via JS para que html2canvas las respete exactamente */
+/* Smart layout: 1 → cuadrado | 2-3 → rectángulos apilados | 4-9 → grid 3col */
 function renderCardGroup(tab) {
   const g    = document.getElementById(`g-${tab}`);
   const row  = document.getElementById(`r-${tab}`);
@@ -460,12 +452,6 @@ function renderCardGroup(tab) {
       <div class="s-img">
         <img src="${IMG_PATH[tab](n.id)}" onerror="this.parentElement.style.display='none'">
       </div>`;
-  });
-
-  // Asignar alturas px reales tras render (mide y aplica en el mismo frame)
-  requestAnimationFrame(() => {
-    const m = measureImgHeights();
-    applyImgHeights(document, m);
   });
 }
 
@@ -507,316 +493,86 @@ function update() {
   document.getElementById('count').innerText = totalCount;
 }
 
-// ── CAPTURA MANUAL EN CANVAS ──────────────────────────────────────────────
-// En lugar de html2canvas (que no soporta object-fit:cover ni aspect-ratio),
-// dibujamos la tarjeta directamente en un <canvas> 2D.
-// Así controlamos exactamente qué parte de cada imagen se muestra (crop centrado).
-
-function cropDraw(ctx, img, dx, dy, dw, dh, posYpct) {
-  // Dibuja img recortada con cover + posición vertical configurable
-  const imgRatio = img.naturalWidth / img.naturalHeight;
-  const boxRatio = dw / dh;
-  let sx, sy, sw, sh;
-  if (imgRatio > boxRatio) {
-    // imagen más ancha que la caja → recortar lados
-    sh = img.naturalHeight;
-    sw = sh * boxRatio;
-    sx = (img.naturalWidth - sw) / 2;
-    sy = 0;
-  } else {
-    // imagen más alta → recortar top/bottom según posYpct
-    sw = img.naturalWidth;
-    sh = sw / boxRatio;
-    sx = 0;
-    sy = (img.naturalHeight - sh) * posYpct;
-  }
-  ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
-}
-
-function loadImage(src) {
-  return new Promise(resolve => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.onload  = () => resolve(img);
-    img.onerror = () => resolve(null);
-    img.src = src;
-  });
-}
-
 async function captureCard() {
-  // ── Dimensiones del canvas de salida ──
-  const SCALE   = 2;          // densidad de píxeles
-  const W       = 900 * SCALE; // ancho base (igual que .wrapper max-width)
-  const PAD     = 28 * SCALE;
-  const GAP     = 8  * SCALE;
-  const RADIUS  = 8  * SCALE;
+  const el = document.getElementById('capture-area');
 
-  // Colores
-  const C_BG    = '#1C1C26';
-  const C_PAPER = '#16161D';
-  const C_ORG   = '#FB743F';
-  const C_INK   = '#0F0F15';
-  const C_WHITE = '#FFFFFF';
+  // html2canvas no soporta aspect-ratio ni object-fit:cover.
+  // Solución: antes de capturar, convertimos cada .s-img a dimensiones px reales
+  // leyendo su tamaño actual con getBoundingClientRect(), capturamos, y restauramos.
 
-  // ── Fuentes ──
-  const F_BANG  = sz => `${sz}px Bangers, cursive`;
+  const snapshots = [];
 
-  // ── Leer valores actuales del DOM ──
-  const pts     = document.getElementById('sPoints').innerText;
-  const val     = document.getElementById('sValue').innerText;
-  const ppp     = document.getElementById('sPpp').innerText;
-  const fdv     = document.getElementById('sFdv').innerText;
-  const air     = document.getElementById('sAir').innerText;
-  const supply  = document.getElementById('sSupply').innerText;
-  const refCode = document.getElementById('sRef').innerText;
+  el.querySelectorAll('.s-img').forEach(wrap => {
+    const rect = wrap.getBoundingClientRect();
+    const w = Math.round(rect.width);
+    const h = Math.round(rect.height);
+    const img = wrap.querySelector('img');
 
-  // ── Cargar logo ──
-  const logoEl = document.querySelector('#capture-area .s-logo');
-  const logoImg = logoEl ? await loadImage(logoEl.src) : null;
+    // Guardamos estilos originales
+    snapshots.push({
+      wrap,
+      wrapW:   wrap.style.width,
+      wrapH:   wrap.style.height,
+      wrapAR:  wrap.style.aspectRatio,
+      img,
+      imgW:    img ? img.style.width    : '',
+      imgH:    img ? img.style.height   : '',
+      imgOF:   img ? img.style.objectFit: '',
+      imgOP:   img ? img.style.objectPosition : '',
+    });
 
-  // ── Cargar NFTs ──
-  const nftImgs = {};
-  for (const tab of ['leg25','hid225','flame']) {
-    nftImgs[tab] = [];
-    for (const n of myNfts[tab]) {
-      const img = await loadImage(IMG_PATH[tab](n.id));
-      nftImgs[tab].push(img);
+    // Fijamos px exactos — el navegador ya calculó el recorte correcto
+    wrap.style.width       = w + 'px';
+    wrap.style.height      = h + 'px';
+    wrap.style.aspectRatio = 'unset';
+
+    if (img) {
+      img.style.width           = w + 'px';
+      img.style.height          = h + 'px';
+      img.style.objectFit       = 'cover';
+      // Mantenemos el object-position calculado por el navegador
+      const cs = window.getComputedStyle(img);
+      img.style.objectPosition  = cs.objectPosition;
     }
-  }
+  });
 
-  // ── Calcular altura del canvas ──
-  // Secciones: header, stats, nft-grid, footer
-  const statsH  = 60  * SCALE;
-  const titleH  = 36  * SCALE;  // título de cada grupo
-  const rowH    = 68  * SCALE;  // altura de cada franja NFT (ratio 16:5 ≈ 68px a escala 2)
-  const gap4    = 4   * SCALE;
+  // Esperamos un frame para que el layout se estabilice con los nuevos px
+  await new Promise(r => requestAnimationFrame(r));
 
-  const maxRows = Math.max(
-    myNfts.leg25.length, myNfts.hid225.length, myNfts.flame.length
-  );
-  const nftAreaH = maxRows <= 1
-    ? (maxRows === 1 ? (W - PAD*2 - GAP*2) / 3 : 0)  // cuadrado si 1
-    : maxRows * rowH + (maxRows - 1) * gap4;
+  const canvas = await html2canvas(el, {
+    useCORS: true,
+    scale: 2,
+    backgroundColor: '#16161D',
+    logging: false,
+  });
 
-  const headerH = 110 * SCALE;
-  const footerH = 60  * SCALE;
-  const totalH  = PAD + headerH + GAP + statsH + GAP + titleH + GAP + nftAreaH + GAP + footerH + PAD;
-
-  const cv  = document.createElement('canvas');
-  cv.width  = W;
-  cv.height = totalH;
-  const ctx = cv.getContext('2d');
-
-  // ── Fondo principal ──
-  roundRect(ctx, 0, 0, W, totalH, RADIUS * 1.5, C_BG);
-
-  // ── Borde exterior naranja ──
-  ctx.strokeStyle = C_ORG;
-  ctx.lineWidth   = 3 * SCALE;
-  roundRectStroke(ctx, 1*SCALE, 1*SCALE, W - 2*SCALE, totalH - 2*SCALE, RADIUS * 1.5);
-
-  let y = PAD;
-
-  // ── HEADER: puntos + airdrop ──
-  ctx.fillStyle = C_ORG;
-  ctx.font      = F_BANG(11 * SCALE);
-  ctx.fillText('MY TOTAL POINTS', PAD, y + 13*SCALE);
-  ctx.textAlign = 'right';
-  ctx.fillText('EST. AIRDROP', W - PAD, y + 13*SCALE);
-  ctx.textAlign = 'left';
-
-  ctx.fillStyle = C_WHITE;
-  ctx.font      = F_BANG(44 * SCALE);
-  ctx.fillText(pts, PAD, y + 55*SCALE);
-  ctx.textAlign = 'right';
-  ctx.fillText(val, W - PAD, y + 55*SCALE);
-  ctx.textAlign = 'left';
-
-  y += headerH + GAP;
-
-  // ── STATS ──
-  const statLabels = ['PRICE/PT','FDV','AIR %','SUPPLY'];
-  const statVals   = [ppp, fdv, air, supply];
-  const statW      = (W - PAD*2 - GAP*3) / 4;
-  for (let i = 0; i < 4; i++) {
-    const sx = PAD + i * (statW + GAP);
-    roundRect(ctx, sx, y, statW, statsH, RADIUS * 0.7, C_BG);
-    roundRectStroke2(ctx, sx, y, statW, statsH, RADIUS * 0.7, C_ORG, 2*SCALE);
-    ctx.fillStyle = C_ORG;
-    ctx.font      = F_BANG(9 * SCALE);
-    ctx.textAlign = 'center';
-    ctx.fillText(statLabels[i], sx + statW/2, y + 18*SCALE);
-    ctx.fillStyle = C_WHITE;
-    ctx.font      = F_BANG(14 * SCALE);
-    ctx.fillText(statVals[i], sx + statW/2, y + 40*SCALE);
-    ctx.textAlign = 'left';
-  }
-
-  y += statsH + GAP;
-
-  // ── NFT GROUPS ──
-  const groupNames = ['LEGENDARY 25', 'HIDDEN 225', 'FLAME NINJAS'];
-  const groupTabs  = ['leg25','hid225','flame'];
-  const groupW     = (W - PAD*2 - GAP*2) / 3;
-
-  for (let gi = 0; gi < 3; gi++) {
-    const tab   = groupTabs[gi];
-    const nfts  = nftImgs[tab];
-    const gx    = PAD + gi * (groupW + GAP);
-    const active = nfts.length > 0;
-    const borderC = active ? C_ORG : C_INK;
-
-    // Calcular altura del grupo
-    let innerH;
-    if (!active) {
-      innerH = nftAreaH;
-    } else if (nfts.length === 1) {
-      innerH = groupW - 12*SCALE; // cuadrado
-    } else {
-      innerH = nfts.length * rowH + (nfts.length - 1) * gap4;
+  // Restauramos todos los estilos originales
+  snapshots.forEach(s => {
+    s.wrap.style.width       = s.wrapW;
+    s.wrap.style.height      = s.wrapH;
+    s.wrap.style.aspectRatio = s.wrapAR;
+    if (s.img) {
+      s.img.style.width           = s.imgW;
+      s.img.style.height          = s.imgH;
+      s.img.style.objectFit       = s.imgOF;
+      s.img.style.objectPosition  = s.imgOP;
     }
-    const gH = titleH + GAP + innerH + 12*SCALE;
+  });
 
-    roundRect(ctx, gx, y, groupW, gH, RADIUS * 0.7, 'rgba(0,0,0,0.15)');
-    roundRectStroke2(ctx, gx, y, groupW, gH, RADIUS * 0.7, borderC, 2*SCALE);
+  const targetWidth  = 1600;
+  const scale        = targetWidth / canvas.width;
+  const targetHeight = Math.round(canvas.height * scale);
 
-    // Título del grupo
-    ctx.fillStyle = active ? C_WHITE : 'rgba(255,255,255,0.3)';
-    ctx.font      = F_BANG(13 * SCALE);
-    ctx.textAlign = 'center';
-    ctx.fillText(groupNames[gi], gx + groupW/2, y + 24*SCALE);
-    ctx.textAlign = 'left';
+  const tw  = document.createElement('canvas');
+  tw.width  = targetWidth;
+  tw.height = targetHeight;
 
-    // Línea bajo título
-    ctx.strokeStyle = active ? C_ORG : 'rgba(251,116,63,0.3)';
-    ctx.lineWidth = 1 * SCALE;
-    ctx.beginPath();
-    ctx.moveTo(gx + 6*SCALE, y + titleH);
-    ctx.lineTo(gx + groupW - 6*SCALE, y + titleH);
-    ctx.stroke();
+  const ctx = tw.getContext('2d');
+  ctx.fillStyle = '#16161D';
+  ctx.fillRect(0, 0, tw.width, tw.height);
+  ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, targetWidth, targetHeight);
 
-    // Imágenes NFT
-    if (active) {
-      const imgX  = gx + 6*SCALE;
-      const imgW  = groupW - 12*SCALE;
-      let imgY    = y + titleH + GAP;
-
-      // posición vertical del recorte: para leg25/hid225 cabezas están arriba (38%)
-      const posYpct = (tab === 'flame') ? 0.25 : 0.38;
-
-      if (nfts.length === 1) {
-        // cuadrado
-        const sqH = imgW;
-        ctx.save();
-        roundedClip(ctx, imgX, imgY, imgW, sqH, RADIUS * 0.5);
-        if (nfts[0]) cropDraw(ctx, nfts[0], imgX, imgY, imgW, sqH, posYpct);
-        ctx.restore();
-      } else {
-        // franjas horizontales (ratio imgW : rowH)
-        for (const img of nfts) {
-          ctx.save();
-          roundedClip(ctx, imgX, imgY, imgW, rowH, RADIUS * 0.5);
-          if (img) cropDraw(ctx, img, imgX, imgY, imgW, rowH, posYpct);
-          ctx.restore();
-          imgY += rowH + gap4;
-        }
-      }
-    }
-  }
-
-  y += (nftAreaH > 0 ? titleH + GAP + nftAreaH + 12*SCALE : titleH + 40*SCALE) + GAP;
-
-  // ── FOOTER ──
-  ctx.strokeStyle = C_ORG;
-  ctx.lineWidth   = 2 * SCALE;
-  ctx.beginPath();
-  ctx.moveTo(PAD, y);
-  ctx.lineTo(W - PAD, y);
-  ctx.stroke();
-  y += 10 * SCALE;
-
-  if (logoImg) {
-    const lh = 28 * SCALE;
-    const lw = logoImg.naturalWidth * (lh / logoImg.naturalHeight);
-    ctx.drawImage(logoImg, PAD, y, lw, lh);
-
-    // Texto HIBACHI al lado del logo
-    ctx.fillStyle = C_WHITE;
-    ctx.font      = F_BANG(22 * SCALE);
-    ctx.fillText('HIBACHI', PAD + lw + 10*SCALE, y + lh - 2*SCALE);
-  }
-
-  ctx.textAlign = 'right';
-  ctx.fillStyle = C_ORG;
-  ctx.font      = F_BANG(14 * SCALE);
-  ctx.fillText('REF CODE', W - PAD, y + 16*SCALE);
-  if (refCode) {
-    ctx.fillStyle = C_WHITE;
-    ctx.font      = F_BANG(18 * SCALE);
-    ctx.fillText(refCode, W - PAD, y + 36*SCALE);
-  }
-  ctx.textAlign = 'left';
-
-  // ── Escalar a 1600px de ancho ──
-  const TARGET_W = 1600;
-  const ratio    = TARGET_W / W;
-  const TARGET_H = Math.round(totalH * ratio);
-  const out      = document.createElement('canvas');
-  out.width      = TARGET_W;
-  out.height     = TARGET_H;
-  const octx     = out.getContext('2d');
-  octx.drawImage(cv, 0, 0, TARGET_W, TARGET_H);
-  return out;
-}
-
-// ── Utilidades de dibujo ────────────────────────────────────────────────────
-function roundRect(ctx, x, y, w, h, r, fill) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-  ctx.fillStyle = fill;
-  ctx.fill();
-}
-function roundRectStroke(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-  ctx.stroke();
-}
-function roundRectStroke2(ctx, x, y, w, h, r, color, lw) {
-  ctx.strokeStyle = color;
-  ctx.lineWidth = lw;
-  roundRectStroke(ctx, x, y, w, h, r);
-}
-function roundedClip(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-  ctx.clip();
+  return tw;
 }
 
 async function downloadCard(btn) {

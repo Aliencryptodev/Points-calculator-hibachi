@@ -496,32 +496,62 @@ function update() {
 async function captureCard() {
   const el = document.getElementById('capture-area');
 
-  // Capturamos el área tal cual es
+  // Forzamos dimensiones y estilos fijos en todas las imágenes del capture-area
+  // para que html2canvas las renderice exactamente igual que en pantalla
+  const imgs = el.querySelectorAll('.s-img');
+  const snapshots = [];
+
+  imgs.forEach(imgWrap => {
+    const computed = window.getComputedStyle(imgWrap);
+    const w = imgWrap.offsetWidth;
+    const h = imgWrap.offsetHeight;
+    snapshots.push({ el: imgWrap, prevW: imgWrap.style.width, prevH: imgWrap.style.height });
+    // Fijamos píxeles exactos para que html2canvas no dependa de aspect-ratio CSS
+    imgWrap.style.width  = w + 'px';
+    imgWrap.style.height = h + 'px';
+    const img = imgWrap.querySelector('img');
+    if (img) {
+      img.style.width  = w + 'px';
+      img.style.height = h + 'px';
+      img.style.objectFit = 'cover';
+    }
+  });
+
+  // Pequeña pausa para que el layout se estabilice
+  await new Promise(r => setTimeout(r, 60));
+
   const canvas = await html2canvas(el, {
     useCORS: true,
     scale: 2,
     backgroundColor: '#16161D',
+    logging: false,
+    imageTimeout: 15000,
+    allowTaint: false,
   });
 
-  // Calculamos las proporciones para Twitter (1.91:1)
-  // Queremos que el ancho sea 1600. La altura proporcional sería 836.
-  // Pero si tu tarjeta es más alta, necesitamos que el canvas final sea más alto.
-  
+  // Restauramos estilos originales
+  snapshots.forEach(({ el: imgWrap, prevW, prevH }) => {
+    imgWrap.style.width  = prevW;
+    imgWrap.style.height = prevH;
+    const img = imgWrap.querySelector('img');
+    if (img) {
+      img.style.width  = '';
+      img.style.height = '';
+      img.style.objectFit = '';
+    }
+  });
+
   const targetWidth = 1600;
   const scale = targetWidth / canvas.width;
-  const targetHeight = canvas.height * scale; // Altura dinámica según el contenido
+  const targetHeight = Math.round(canvas.height * scale);
 
   const tw = document.createElement('canvas');
-  tw.width = targetWidth;
-  tw.height = targetHeight; 
-  
+  tw.width  = targetWidth;
+  tw.height = targetHeight;
+
   const ctx = tw.getContext('2d');
-  
-  // Fondo oscuro
   ctx.fillStyle = '#16161D';
   ctx.fillRect(0, 0, tw.width, tw.height);
-
-  // Dibujamos la captura ajustada al ancho sin cortar nada de abajo
   ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, targetWidth, targetHeight);
 
   return tw;

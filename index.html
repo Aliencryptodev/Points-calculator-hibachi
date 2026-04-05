@@ -288,7 +288,7 @@ input[type="range"]::-webkit-slider-thumb {
       <div class="slider-row"><label>Airdrop %</label><span class="slider-val" id="valAir">25%</span></div>
       <input type="range" id="slAir" min="1" max="100" value="25" oninput="update()">
       <div class="slider-row"><label>TOTAL POINTS</label><span class="slider-val" id="valSupply">65M</span></div>
-      <input type="range" id="slSupply" min="10" max="500" step="5" value="65" oninput="update()">
+      <input type="range" id="slSupply" min="10" max="200" step="5" value="65" oninput="update()">
     </div>
 
     <div class="result-bar">
@@ -339,7 +339,7 @@ input[type="range"]::-webkit-slider-thumb {
     <div class="s-stats">
       <div class="s-stat-item"><div>PRICE/PT</div><b id="sPpp">$0</b></div>
       <div class="s-stat-item"><div>FDV</div><b id="sFdv">$0</b></div>
-      <div class="s-stat-item"><div>AIR %</div><b id="sAir">0%</b></div>
+      <div class="s-stat-item"><div>AIRDROP %</div><b id="sAir">0%</b></div>
       <div class="s-stat-item"><div>SUPPLY</div><b id="sSupply">0M</b></div>
     </div>
 
@@ -617,8 +617,11 @@ async function copyCard(btn) {
 
 function tweetShare() {
   const val = document.getElementById('sValue').innerText;
+  const message = `My $HIBACHI allocation: ${val} 💰🔥\n\nStill time to boost your rewards! Trade on @hibachi_xyz to earn more points before the snapshot. 📈\n\nCheck your estimate here:`;
+  const url = "https://pointscalculatorhibachi.fun";
+  
   window.open(
-    `https://twitter.com/intent/tweet?text=${encodeURIComponent(`My estimated $HIBACHI airdrop is ${val} 🔥\n\n@hibachi_xyz #HibachiAirdrop`)}`,
+    `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}&hashtags=Hibachi,Trading,Airdrop`,
     '_blank'
   );
 }

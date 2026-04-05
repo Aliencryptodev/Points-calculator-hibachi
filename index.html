@@ -225,7 +225,11 @@ input[type="range"]::-webkit-slider-thumb {
   margin-top: 14px; display: flex; justify-content: space-between; align-items: center;
   border-top: 2px solid var(--orange); padding-top: 10px;
 }
-.s-logo { height: clamp(60px, 10vw, 108px); width: auto; filter: drop-shadow(2px 2px 0 var(--ink)); }
+.s-logo { 
+  height: clamp(60px, 10vw, 108px); 
+  width: auto; 
+  filter: drop-shadow(2px 2px 0 var(--ink));
+  margin-top: 15px; }
 .s-ref { font-size: clamp(16px, 3.5vw, 32px); color: var(--white); }
 .s-url { font-size: clamp(16px, 3.5vw, 32px); color: var(--orange); }
 
@@ -246,13 +250,16 @@ input[type="range"]::-webkit-slider-thumb {
 @media (max-width: 620px) {
   .main-grid { grid-template-columns: 1fr; }
   .result-bar { flex-direction: column; gap: 8px; }
+
+  /* Añade esto aquí para bajar el logo en el móvil */
+  .s-logo { 
+    margin-top: 5px; 
+  }
+
   .actions { flex-direction: column; align-items: stretch; }
   .btn-act  { text-align: center; }
   body      { padding: 10px; }
   /* s-stats dentro de capture-area siempre 4 col para que la tarjeta se vea igual */
-}
-@media (max-width: 380px) {
-  .s-val-lg, .s-val-xl { font-size: 34px; }
 }
 </style>
 </head>
@@ -620,3 +627,4 @@ update();
 </script>
 </body>
 </html>
+

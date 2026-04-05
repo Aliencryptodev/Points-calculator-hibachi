@@ -507,11 +507,19 @@ function update() {
 async function captureCard() {
   const el = document.getElementById('capture-area');
 
-  // Forzar ancho 800px para que siempre salga horizontal (importante en móvil)
+  // 1. FORZAR DISEÑO DE ESCRITORIO (Evita que el logo y el texto se pisen en móvil)
   const prevMinW = el.style.minWidth;
   const prevW    = el.style.width;
-  el.style.minWidth = '860px';
-  el.style.width    = '860px';
+  const sFooter  = el.querySelector('.s-footer');
+  const prevAlign = sFooter ? sFooter.style.alignItems : '';
+
+  // Subimos a 1100px para dar aire suficiente entre el Logo y el Ref Code
+  el.style.minWidth = '1100px';
+  el.style.width    = '1100px';
+  
+  // Forzamos que el logo se quede en la base (esquina inferior izquierda)
+  if (sFooter) sFooter.style.alignItems = 'flex-end';
+
   const sStats = el.querySelector('.s-stats');
   const prevGrid = sStats ? sStats.style.gridTemplateColumns : '';
   if (sStats) sStats.style.gridTemplateColumns = 'repeat(4, 1fr)';
@@ -567,13 +575,14 @@ async function captureCard() {
     logging: false,
   });
 
-  // Restaurar todo
+  // 2. RESTAURAR ESTADO ORIGINAL (Para que la web se siga viendo bien en móvil)
   replacements.forEach(({ wrap, cv, img, prevWrapW, prevWrapH, prevWrapAR }) => {
     wrap.replaceChild(img, cv);
     wrap.style.width = prevWrapW; wrap.style.height = prevWrapH; wrap.style.aspectRatio = prevWrapAR;
   });
   el.style.minWidth = prevMinW;
   el.style.width    = prevW;
+  if (sFooter) sFooter.style.alignItems = prevAlign;
   if (sStats) sStats.style.gridTemplateColumns = prevGrid;
 
   const targetWidth  = 1600;

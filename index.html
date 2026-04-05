@@ -246,13 +246,14 @@ input[type="range"]::-webkit-slider-thumb {
 @media (max-width: 620px) {
   .main-grid { grid-template-columns: 1fr; }
   .result-bar { flex-direction: column; gap: 8px; }
+  .s-stats { grid-template-columns: repeat(2, 1fr); }
   .actions { flex-direction: column; align-items: stretch; }
   .btn-act  { text-align: center; }
   body      { padding: 10px; }
-  /* s-stats dentro de capture-area siempre 4 col para que la tarjeta se vea igual */
 }
 @media (max-width: 380px) {
   .s-val-lg, .s-val-xl { font-size: 34px; }
+  .s-stats { grid-template-columns: repeat(2, 1fr); }
 }
 </style>
 </head>
@@ -352,11 +353,9 @@ input[type="range"]::-webkit-slider-thumb {
     </div>
 
     <div class="s-footer">
-      <div style="display:flex; flex-direction:column; gap:2px;">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <img src="logotype_mark_white.png" alt="Hibachi" class="s-logo">
-        </div>
-        <div style="color:#fff; font-family:'Bangers',cursive; font-size:clamp(16px,3vw,28px); letter-spacing:4px; padding-left:60px;">POINTS CALCULATOR</div>
+      <div style="display:flex; flex-direction:column; gap:0px;">
+        <img src="logotype_mark_white.png" alt="Hibachi" class="s-logo" id="footerLogo">
+        <div id="pointsCalcText" style="color:#fff; font-family:'Bangers',cursive; font-size:clamp(16px,3vw,28px); letter-spacing:4px;">POINTS CALCULATOR</div>
       </div>
       <div style="text-align:right">
         <div class="s-url">REF CODE</div>
@@ -497,8 +496,25 @@ function update() {
   document.getElementById('count').innerText = totalCount;
 }
 
+// Alinea POINTS CALCULATOR con la H del logo dinámicamente
+function alignPointsCalc() {
+  const logo = document.getElementById('footerLogo');
+  const txt  = document.getElementById('pointsCalcText');
+  if (logo && txt) {
+    // El logo es una imagen que contiene icono + texto HIBACHI
+    // Necesitamos offset = ancho del icono de fuego (aprox 55% del logo width en móvil, menos en desktop)
+    // Solución robusta: medir el logo y aplicar un offset proporcional a su altura
+    const logoH = logo.getBoundingClientRect().height || logo.offsetHeight;
+    // El icono de fuego ocupa aprox el mismo ancho que su altura
+    txt.style.marginLeft = Math.round(logoH * 0.85) + 'px';
+  }
+}
+
 async function captureCard() {
   const el = document.getElementById('capture-area');
+
+  // Alinear POINTS CALCULATOR antes de capturar
+  alignPointsCalc();
 
   // Forzar ancho 800px para que siempre salga horizontal (importante en móvil)
   const prevMinW = el.style.minWidth;
@@ -509,8 +525,12 @@ async function captureCard() {
   const prevGrid = sStats ? sStats.style.gridTemplateColumns : '';
   if (sStats) sStats.style.gridTemplateColumns = 'repeat(4, 1fr)';
 
-  // Esperar a que el layout se recalcule con el nuevo ancho
+  // Esperar a que el layout se recalcule
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+
+  // Recalcular alineación con el nuevo ancho
+  alignPointsCalc();
+  await new Promise(r => requestAnimationFrame(r));
 
   // html2canvas ignora object-fit:cover → pre-renderizamos cada NFT en canvas temporal
   function computeCoverCrop(imgNW, imgNH, boxW, boxH, posX, posY) {
@@ -617,6 +637,9 @@ function tweetShare() {
 }
 
 update();
+// Alinear al cargar
+window.addEventListener('load', alignPointsCalc);
+window.addEventListener('resize', alignPointsCalc);
 </script>
 </body>
 </html>

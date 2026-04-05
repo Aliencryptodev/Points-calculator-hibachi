@@ -617,11 +617,13 @@ async function copyCard(btn) {
 
 function tweetShare() {
   const val = document.getElementById('sValue').innerText;
-  const message = `My $HIBACHI allocation: ${val} 💰🔥\n\nStill time to boost your rewards! Trade on @hibachi_xyz to earn more points before the snapshot. 📈\n\nCheck your estimate here:`;
+  
+  const message = `My $HIBACHI allocation: ${val} 💰🔥\n\nStill time to boost your rewards! \nTrade on @hibachi_xyz to earn more points before the snapshot. \n\nCheck your estimate here:`;
+  
   const url = "https://pointscalculatorhibachi.fun";
   
   window.open(
-    `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}&hashtags=Hibachi,Trading,Airdrop`,
+    `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}&hashtags=Hibachi,Trading,FX`,
     '_blank'
   );
 }

@@ -510,8 +510,8 @@ async function captureCard() {
   // Forzar ancho 800px para que siempre salga horizontal (importante en móvil)
   const prevMinW = el.style.minWidth;
   const prevW    = el.style.width;
-  el.style.minWidth = '800px';
-  el.style.width    = '800px';
+  el.style.minWidth = '860px';
+  el.style.width    = '860px';
   const sStats = el.querySelector('.s-stats');
   const prevGrid = sStats ? sStats.style.gridTemplateColumns : '';
   if (sStats) sStats.style.gridTemplateColumns = 'repeat(4, 1fr)';

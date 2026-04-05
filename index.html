@@ -488,7 +488,7 @@ function alignPointsCalc() {
   const logoW = logo.getBoundingClientRect().width || logo.offsetWidth;
   if (!logoW) return;
   // Offset = ancho del icono de fuego = ~22% del total del logo
-  txt.style.marginLeft = Math.round(logoW * 0.22) + 'px';
+  txt.style.marginLeft = Math.round(logoW * 0.26) + 'px';
   // Ancho = igual al texto HIBACHI = ~78% del total
   txt.style.width = Math.round(logoW * 0.78) + 'px';
   txt.style.overflow = 'visible';
@@ -501,8 +501,8 @@ async function captureCard() {
   // Forzar ancho 800px para captura siempre horizontal
   const prevMinW = el.style.minWidth;
   const prevW    = el.style.width;
-  el.style.minWidth = '800px';
-  el.style.width    = '800px';
+  el.style.minWidth = '860px';
+  el.style.width    = '860px';
   const sStats = el.querySelector('.s-stats');
   const prevGrid = sStats ? sStats.style.gridTemplateColumns : '';
   if (sStats) sStats.style.gridTemplateColumns = 'repeat(4, 1fr)';

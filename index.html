@@ -507,27 +507,71 @@ function update() {
 async function captureCard() {
   const el = document.getElementById('capture-area');
 
-  // 1. FORZAR DISEÑO DE ESCRITORIO (Evita que el logo y el texto se pisen en móvil)
-  const prevMinW = el.style.minWidth;
-  const prevW    = el.style.width;
-  const sFooter  = el.querySelector('.s-footer');
-  const prevAlign = sFooter ? sFooter.style.alignItems : '';
-
-  // Subimos a 1100px para dar aire suficiente entre el Logo y el Ref Code
-  el.style.minWidth = '1100px';
-  el.style.width    = '1100px';
+  // 1. CREAMOS UN CLON INVISIBLE Y LO AISLAMOS COMPLETAMENTE (CRÍTICO)
+  // Clonamos el elemento para trabajar sobre él sin afectar la vista del usuario.
+  const clone = el.cloneNode(true);
   
-  // Forzamos que el logo se quede en la base (esquina inferior izquierda)
-  if (sFooter) sFooter.style.alignItems = 'flex-end';
+  // Posicionamiento absoluto y fuera de la vista para evitar interferencias del móvil.
+  clone.style.position = 'absolute';
+  clone.style.top = '-9999px'; 
+  clone.style.left = '0';
+  
+  // Forzamos un ancho de escritorio real. Esto es lo que evita que los elementos se amontonen.
+  clone.style.width = '1100px'; 
+  clone.style.minWidth = '1100px';
+  clone.style.height = 'auto';
+  
+  // Limpiamos transformaciones que el navegador móvil pueda haber aplicado.
+  clone.style.transform = 'none';
+  
+  // Añadimos el clon directamente al body para que ignore contenedores padres.
+  document.body.appendChild(clone);
 
-  const sStats = el.querySelector('.s-stats');
-  const prevGrid = sStats ? sStats.style.gridTemplateColumns : '';
-  if (sStats) sStats.style.gridTemplateColumns = 'repeat(4, 1fr)';
+  // 2. RECONSTRUCCIÓN FORZADA DEL DISEÑO DE ESCRITORIO EN EL CLON
+  
+  // --- ARREGLO 1: EL ALINEADO DE LOS NFTS (TU PROBLEMA PRINCIPAL) ---
+  // Buscamos el contenedor de los grids de NFTs en el clon y lo rehacemos.
+  const sNftGrid = clone.querySelector('.s-nft-grid');
+  if (sNftGrid) {
+    sNftGrid.style.display = 'grid';
+    // Forzamos 3 columnas idénticas y fijas.
+    sNftGrid.style.gridTemplateColumns = 'repeat(3, 1fr)'; 
+    sNftGrid.style.gap = '10px';
+    // ESTA LÍNEA ES CLAVE: Fuerza a los 3 grupos a alinearse por arriba y estirarse.
+    // Esto es lo que bajará "FLAME NINJAS" a su sitio.
+    sNftGrid.style.alignItems = 'stretch'; 
+    // Aseguramos que no tenga posicionamiento absoluto heredado del móvil.
+    sNftGrid.style.position = 'relative'; 
+    sNftGrid.style.float = 'none';
+  }
 
-  // Esperar a que el layout se recalcule con el nuevo ancho
-  await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+  // --- ARREGLO 2: EL LOGO Y FOOTER ---
+  // Ajustamos el footer en el clon para que el logo no flote y tape nada.
+  const sFooter = clone.querySelector('.s-footer');
+  if (sFooter) {
+    sFooter.style.display = 'flex';
+    sFooter.style.justifyContent = 'space-between';
+    sFooter.style.alignItems = 'flex-end'; // Anclado abajo
+  }
 
-  // html2canvas ignora object-fit:cover → pre-renderizamos cada NFT en canvas temporal
+  // --- ARREGLO 3: LAS ESTADÍSTICAS (FDV, SUPPLY, ETC.) ---
+  // Forzamos las 4 columnas de las estadísticas en el clon para que se vean horizontales.
+  const sStats = clone.querySelector('.s-stats');
+  if (sStats) {
+    sStats.style.display = 'grid';
+    sStats.style.gridTemplateColumns = 'repeat(4, 1fr)';
+    sStats.style.gap = '10px';
+  }
+
+  // 3. ESPERAR A QUE LAS IMÁGENES CARGUEN EN EL CLON (CRÍTICO)
+  // A veces html2canvas falla si las imágenes no están precargadas en el clon.
+  const images = clone.querySelectorAll('img');
+  await Promise.all(Array.from(images).map(img => {
+    if (img.complete) return Promise.resolve();
+    return new Promise(resolve => { img.onload = resolve; img.onerror = resolve; });
+  }));
+
+  // 4. LÓGICA DE RECORTE (ComputeCoverCrop) - No cambies nada de aquí
   function computeCoverCrop(imgNW, imgNH, boxW, boxH, posX, posY) {
     const imgRatio = imgNW / imgNH;
     const boxRatio = boxW  / boxH;
@@ -540,60 +584,51 @@ async function captureCard() {
     return { sx, sy, sw, sh };
   }
 
-  const replacements = [];
-  el.querySelectorAll('.s-img').forEach(wrap => {
+  // Aplicar los recortes a las imágenes dentro del clon
+  clone.querySelectorAll('.s-img').forEach(wrap => {
     const img = wrap.querySelector('img');
     if (!img || !img.complete || img.naturalWidth === 0) return;
     const wRect = wrap.getBoundingClientRect();
-    const boxW  = Math.round(wRect.width);
-    const boxH  = Math.round(wRect.height);
+    const boxW = Math.round(wRect.width);
+    const boxH = Math.round(wRect.height);
     if (!boxW || !boxH) return;
-    const cs    = window.getComputedStyle(img);
+    const cs = window.getComputedStyle(img);
     const parts = cs.objectPosition.split(' ');
-    const posX  = parseFloat(parts[0]) / 100;
-    const posY  = parseFloat(parts[1] || parts[0]) / 100;
+    const posX = parseFloat(parts[0]) / 100;
+    const posY = parseFloat(parts[1] || parts[0]) / 100;
     const { sx, sy, sw, sh } = computeCoverCrop(img.naturalWidth, img.naturalHeight, boxW, boxH, posX, posY);
-    const cv  = document.createElement('canvas');
-    cv.width  = boxW; cv.height = boxH;
+    const cv = document.createElement('canvas');
+    cv.width = boxW; cv.height = boxH;
     cv.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, boxW, boxH);
-    const prevWrapW  = wrap.style.width;
-    const prevWrapH  = wrap.style.height;
-    const prevWrapAR = wrap.style.aspectRatio;
-    wrap.style.width = boxW + 'px'; wrap.style.height = boxH + 'px'; wrap.style.aspectRatio = 'unset';
-    cv.style.width = boxW + 'px'; cv.style.height = boxH + 'px';
-    cv.style.display = 'block'; cv.style.borderRadius = cs.borderRadius;
+    cv.style.width = '100%';
+    cv.style.height = '100%';
+    cv.style.borderRadius = cs.borderRadius;
     wrap.replaceChild(cv, img);
-    replacements.push({ wrap, cv, img, prevWrapW, prevWrapH, prevWrapAR });
   });
 
-  await new Promise(r => requestAnimationFrame(r));
-
-  const canvas = await html2canvas(el, {
+  // 5. CAPTURAR EL CLON
+  const canvas = await html2canvas(clone, {
     useCORS: true,
-    scale: 3,
+    scale: 3, // Máxima calidad
     backgroundColor: '#16161D',
     logging: false,
+    width: 1100 // Aseguramos que capture los 1100px
   });
 
-  // 2. RESTAURAR ESTADO ORIGINAL (Para que la web se siga viendo bien en móvil)
-  replacements.forEach(({ wrap, cv, img, prevWrapW, prevWrapH, prevWrapAR }) => {
-    wrap.replaceChild(img, cv);
-    wrap.style.width = prevWrapW; wrap.style.height = prevWrapH; wrap.style.aspectRatio = prevWrapAR;
-  });
-  el.style.minWidth = prevMinW;
-  el.style.width    = prevW;
-  if (sFooter) sFooter.style.alignItems = prevAlign;
-  if (sStats) sStats.style.gridTemplateColumns = prevGrid;
+  // 6. ELIMINAR EL CLON Y RETORNAR LA IMAGEN
+  document.body.removeChild(clone);
 
-  const targetWidth  = 1600;
-  const scale        = targetWidth / canvas.width;
+  // Redimensionar para que la imagen final sea de 1600px de ancho (estándar Twitter)
+  const targetWidth = 1600;
+  const scale = targetWidth / canvas.width;
   const targetHeight = Math.round(canvas.height * scale);
-  const tw  = document.createElement('canvas');
-  tw.width  = targetWidth; tw.height = targetHeight;
+  const tw = document.createElement('canvas');
+  tw.width = targetWidth; tw.height = targetHeight;
   const ctx = tw.getContext('2d');
   ctx.fillStyle = '#16161D';
   ctx.fillRect(0, 0, tw.width, tw.height);
   ctx.drawImage(canvas, 0, 0, canvas.width, canvas.height, 0, 0, targetWidth, targetHeight);
+  
   return tw;
 }
 

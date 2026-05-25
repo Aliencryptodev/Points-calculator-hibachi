@@ -16,10 +16,10 @@ An intuitive and efficient web application designed to calculate and track point
 ## 📸 Previews
 
 ### Dashboard Single View
-![Hibachi Calculator Single](hibachi-airdrop%20%2878%29.jpg)
+![Hibachi Calculator Single](assets/hibachi-airdrop%20%2878%29.png)
 
 ### Dashboard Grid View
-![Hibachi Calculator Grid](hibachi-airdrop%20%2876%29.jpg)
+![Hibachi Calculator Grid](assets/hibachi-airdrop%20%2876%29.png)
 
 *(Nota: Para que estas imágenes se vean en GitHub, recuerda subirlas a la raíz de tu repositorio con esos mismos nombres de archivo, o arrastrarlas directamente dentro del editor de GitHub cuando estés editando el archivo README).*
 
